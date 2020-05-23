@@ -1,0 +1,366 @@
+<PhysiCell_settings version="devel-version">
+	<domain>
+		<x_min>-500</x_min>
+		<x_max>500</x_max>
+		<y_min>-500</y_min>
+		<y_max>500</y_max>
+		<z_min>-10</z_min>
+		<z_max>10</z_max>
+		<dx>20</dx>
+		<dy>20</dy>
+		<dz>20</dz>
+		<use_2D>true</use_2D>
+	</domain>
+	
+	<overall>
+		<max_time units="min">720</max_time> 
+		<time_units>min</time_units>
+		<space_units>micron</space_units>
+	
+		<dt_diffusion units="min">0.01</dt_diffusion>
+		<dt_mechanics units="min">0.1</dt_mechanics>
+		<dt_phenotype units="min">6</dt_phenotype>	
+	</overall>
+	
+	<parallel>
+		<omp_num_threads>6</omp_num_threads>
+	</parallel> 
+	
+	<save>
+		<folder>output</folder>  
+
+		<full_data>
+			<interval units="min">60</interval>
+			<enable>true</enable>
+		</full_data>
+		
+		<SVG>
+			<interval units="min">2</interval>
+			<enable>true</enable>
+		</SVG>
+		
+		<legacy_data>
+			<enable>false</enable>
+		</legacy_data>
+	</save>
+	
+	<microenvironment_setup>
+		<variable ID="0" name="virion" units="virion/um^3">
+			<physical_parameter_set>
+				<diffusion_coefficient units="micron^2/min">10.0</diffusion_coefficient>
+				<decay_rate units="1/min">0</decay_rate>  
+			</physical_parameter_set>
+			<initial_condition units="virion/um^3">0</initial_condition>
+			<Dirichlet_boundary_condition enabled="false" units="virion/um^3">0</Dirichlet_boundary_condition>
+		</variable>
+
+		<variable ID="1" name="assembled virion" units="virion/um^3">
+			<physical_parameter_set>
+				<diffusion_coefficient units="micron^2/min">10.0</diffusion_coefficient>
+				<decay_rate units="1/min">0</decay_rate>  
+			</physical_parameter_set>
+			<initial_condition units="virion/um^3">0</initial_condition>
+			<Dirichlet_boundary_condition enabled="false" units="virion/um^3">0</Dirichlet_boundary_condition>
+		</variable>
+
+		<variable ID="2" name="interferon 1" units="mol/um^3">
+			<physical_parameter_set>
+				<diffusion_coefficient units="micron^2/min">555.56</diffusion_coefficient>
+				<decay_rate units="1/min">1.02e-2</decay_rate>  
+			</physical_parameter_set>
+			<initial_condition units="mol/um^3">0</initial_condition>
+			<Dirichlet_boundary_condition enabled="false" units="mol/um^3">0</Dirichlet_boundary_condition>
+		</variable>
+
+		<variable ID="3" name="pro-inflammatory cytokine" units="mol/um^3">
+			<physical_parameter_set>
+				<diffusion_coefficient units="micron^2/min">555.56</diffusion_coefficient>
+				<decay_rate units="1/min">1.02e-2</decay_rate>  
+			</physical_parameter_set>
+			<initial_condition units="mol/um^3">0</initial_condition>
+			<Dirichlet_boundary_condition enabled="false" units="mol/um^3">0</Dirichlet_boundary_condition>
+		</variable>
+
+		<variable ID="4" name="chemokine" units="mol/um^3">
+			<physical_parameter_set>
+				<diffusion_coefficient units="micron^2/min">555.56</diffusion_coefficient>
+				<decay_rate units="1/min">1.02e-2</decay_rate>  
+			</physical_parameter_set>
+			<initial_condition units="mol/um^3">0</initial_condition>
+			<Dirichlet_boundary_condition enabled="false" units="mol/um^3">0</Dirichlet_boundary_condition>
+		</variable>
+
+		<options>
+			<calculate_gradients>true</calculate_gradients>
+			<track_internalized_substrates_in_each_agent>true</track_internalized_substrates_in_each_agent>
+			 
+			<initial_condition enabled="false" type="matlab">
+				<filename>./config/initial.mat</filename>
+			</initial_condition>
+			 
+			<dirichlet_nodes enabled="false" type="matlab">
+				<filename>./config/dirichlet.mat</filename>
+			</dirichlet_nodes>
+		</options>
+	</microenvironment_setup>	
+	
+	<cell_definitions>
+		<cell_definition ID="0" name="default">
+			<phenotype>
+				<cycle code="6" name="flow_cytometry_separated_cycle_model">  
+					
+					<transition_rates units="1/min"> 
+						
+						<rate end_index="1" fixed_duration="false" start_index="0">0</rate>
+						 
+						
+						<rate end_index="2" fixed_duration="true" start_index="1">0.00208333</rate>
+						
+						<rate end_index="3" fixed_duration="true" start_index="2">0.00416667</rate>
+						
+						<rate end_index="0" fixed_duration="true" start_index="3">0.0166667</rate>
+					</transition_rates>
+				</cycle>
+				
+				<death>  
+					<model code="100" name="apoptosis"> 
+						<rate units="1/min">0</rate>  
+						<transition_rates units="1/min">
+							<rate end_index="1" fixed_duration="true" start_index="0">0.00193798</rate>
+						</transition_rates>
+						<parameters>
+							<unlysed_fluid_change_rate units="1/min">0.05</unlysed_fluid_change_rate>
+							<lysed_fluid_change_rate units="1/min">0</lysed_fluid_change_rate>
+							<cytoplasmic_biomass_change_rate units="1/min">1.66667e-02</cytoplasmic_biomass_change_rate>
+							<nuclear_biomass_change_rate units="1/min">5.83333e-03</nuclear_biomass_change_rate>
+							<calcification_rate units="1/min">0</calcification_rate>
+							<relative_rupture_volume units="dimensionless">2.0</relative_rupture_volume>
+						</parameters>
+					</model> 
+
+					<model code="101" name="necrosis">
+						<rate units="1/min">0.0</rate>
+						<transition_rates units="1/min">
+							<rate end_index="1" fixed_duration="false" start_index="0">9e9</rate>
+							<rate end_index="2" fixed_duration="true" start_index="1">1.15741e-5</rate>
+						</transition_rates>
+						<parameters>
+							<unlysed_fluid_change_rate units="1/min">0.05</unlysed_fluid_change_rate>
+							<lysed_fluid_change_rate units="1/min">0</lysed_fluid_change_rate>
+							<cytoplasmic_biomass_change_rate units="1/min">1.66667e-02</cytoplasmic_biomass_change_rate>
+							<nuclear_biomass_change_rate units="1/min">5.83333e-03</nuclear_biomass_change_rate>
+							<calcification_rate units="1/min">0</calcification_rate>
+							<relative_rupture_volume units="dimensionless">2.0</relative_rupture_volume>
+						</parameters>
+					</model> 
+				</death>					
+
+				<volume>  
+					<total units="micron^3">2494</total>
+					<fluid_fraction units="dimensionless">0.75</fluid_fraction>
+					<nuclear units="micron^3">540</nuclear>
+					
+					<fluid_change_rate units="1/min">0.05</fluid_change_rate>
+					<cytoplasmic_biomass_change_rate units="1/min">0.0045</cytoplasmic_biomass_change_rate>
+					<nuclear_biomass_change_rate units="1/min">0.0055</nuclear_biomass_change_rate>
+					
+					<calcified_fraction units="dimensionless">0</calcified_fraction>
+					<calcification_rate units="1/min">0</calcification_rate>
+					
+					<relative_rupture_volume units="dimensionless">2.0</relative_rupture_volume>
+				</volume> 				
+				
+				<mechanics> 
+					<cell_cell_adhesion_strength units="micron/min">0.4</cell_cell_adhesion_strength>
+					<cell_cell_repulsion_strength units="micron/min">10.0</cell_cell_repulsion_strength>
+					<relative_maximum_adhesion_distance units="dimensionless">1.25</relative_maximum_adhesion_distance>
+					
+					<options>
+						<set_relative_equilibrium_distance enabled="false" units="dimensionless">1.8</set_relative_equilibrium_distance>
+						<set_absolute_equilibrium_distance enabled="false" units="micron">15.12</set_absolute_equilibrium_distance>
+					</options>
+				</mechanics>
+				
+				<motility>  
+					<speed units="micron/min">1</speed>
+					<persistence_time units="min">1</persistence_time>
+					<migration_bias units="dimensionless">.5</migration_bias>
+					
+					<options>
+						<enabled>false</enabled>
+						<use_2D>true</use_2D>
+						<chemotaxis>
+							<enabled>false</enabled>
+							<substrate>chemokine</substrate>
+							<direction>1</direction>
+						</chemotaxis>
+					</options>
+				</motility>
+				<secretion>
+				</secretion>
+
+				<molecular />
+			</phenotype>
+			<custom_data>  
+				 
+				<virion units="virions">0</virion>
+				<uncoated_virion units="virions">0</uncoated_virion>
+				<viral_RNA>0</viral_RNA>
+				<viral_protein>0</viral_protein>
+				<assembled_virion>0</assembled_virion>
+				
+				<virion_uncoating_rate description="rate at which an internalized virion is uncoated" type="double" units="1/min">0.01</virion_uncoating_rate>
+				<uncoated_to_RNA_rate description="rate at which uncoated virion makes its mRNA available" type="double" units="1/min">0.01</uncoated_to_RNA_rate> 
+				<protein_synthesis_rate description="rate at mRNA creates complete set of proteins" type="double" units="1/min">0.01</protein_synthesis_rate>
+				<virion_assembly_rate description="rate at which viral proteins are assembled into complete virion" type="double" units="1/min">0.01</virion_assembly_rate>
+ 
+				
+				<virion_export_rate description="rate at which a virion is exported from a live cell" type="double" units="1/min">0.01</virion_export_rate> 
+
+				 
+				<unbound_external_ACE2>1000</unbound_external_ACE2>
+				<bound_external_ACE2>0</bound_external_ACE2>
+				<unbound_internal_ACE2>0</unbound_internal_ACE2>
+				<bound_internal_ACE2>0</bound_internal_ACE2>
+	
+				<ACE2_binding_rate description="ACE2 receptor-virus binding rate" type="double" units="1/min">0.001</ACE2_binding_rate> 
+				<ACE2_endocytosis_rate description="ACE2 receptor-virus endocytosis rate" type="double" units="1/min">0.01</ACE2_endocytosis_rate> 
+				<ACE2_cargo_release_rate description="ACE2 receptor-virus cargo release rate" type="double" units="1/min">0.001</ACE2_cargo_release_rate> 
+				<ACE2_recycling_rate description="ACE2 receptor recycling rate" type="double" units="1/min">0.01</ACE2_recycling_rate> 
+				
+				 
+				<max_infected_apoptosis_rate description="maximum rate of cell apoptosis due to viral infection" type="double" units="1/min">0.001</max_infected_apoptosis_rate>
+				<max_apoptosis_half_max description="viral load at which cells reach half max apoptosis rate" type="double" units="virion">500</max_apoptosis_half_max>
+				<apoptosis_hill_power description="Hill power for viral load apoptosis response" type="double" units="none">1</apoptosis_hill_power> 
+				<virus_fraction_released_at_death description="fraction of internal virus released at cell death" type="double" units="none">0</virus_fraction_released_at_death>				
+				
+				 
+				<TCell_contact_time type="double" units="min">0.0</TCell_contact_time>
+				<cell_attachment_rate units="1/min">0</cell_attachment_rate>
+				<cell_attachment_lifetime units="min">0</cell_attachment_lifetime>
+				
+				<TCell_contact_death_threshold units="min">50</TCell_contact_death_threshold>
+				<max_attachment_distance units="micron">15</max_attachment_distance>
+				<elastic_attachment_coefficient units="1/min">0.01</elastic_attachment_coefficient>
+				<maximum_tolerated_ingested_debris units="micron^3">4000</maximum_tolerated_ingested_debris>
+				
+				 
+				
+			
+			</custom_data>
+		</cell_definition>
+		
+		<cell_definition ID="1" name="lung epithelium" parent_type="default">
+			<phenotype>
+				<motility>  
+					<options>
+						<enabled>false</enabled>
+					</options>
+				</motility>
+				<secretion>
+				</secretion>
+			</phenotype>
+			<custom_data>
+			</custom_data>
+		</cell_definition>
+
+		 
+		<cell_definition ID="2" name="immune" parent_type="default">
+			<phenotype>
+				<motility>  
+					<speed units="micron/min">4</speed>
+					<persistence_time units="min">1</persistence_time>
+					<migration_bias units="dimensionless">0.5</migration_bias>
+					<options>
+						<enabled>true</enabled>
+						<use_2D>true</use_2D>
+						<chemotaxis>
+							<enabled>true</enabled>
+							<substrate>chemokine</substrate>
+							<direction>1</direction>
+						</chemotaxis>
+					</options>
+				</motility>
+				<secretion>
+					<substrate name="pro-inflammatory cytokine">
+						<secretion_rate units="1/min">10</secretion_rate>
+						<secretion_target units="substrate density">1</secretion_target>
+					</substrate> 	
+				</secretion>
+			</phenotype>
+			<custom_data>
+			</custom_data>
+		</cell_definition>
+		
+		<cell_definition ID="3" name="CD8 Tcell" parent_type="immune">
+			<phenotype>
+				<motility>  
+				</motility>
+				<secretion>
+				</secretion>
+			</phenotype>
+			<custom_data>
+				<cell_attachment_rate units="1/min">0.2</cell_attachment_rate>
+				<cell_attachment_lifetime units="min">8.5</cell_attachment_lifetime>
+			</custom_data>
+		</cell_definition>
+		
+		<cell_definition ID="4" name="macrophage" parent_type="immune">
+			<phenotype>
+				<motility>  
+				</motility>
+				<secretion>
+				</secretion>
+			</phenotype>
+			<custom_data>
+			</custom_data>
+		</cell_definition>		
+
+		<cell_definition ID="5" name="neutrophil" parent_type="immune">
+			<phenotype>
+				<motility>  
+				</motility>
+				<secretion>
+					<substrate name="virion">
+						<uptake_rate units="1/min">1</uptake_rate>
+					</substrate> 	
+				</secretion>
+			</phenotype>
+			<custom_data>
+			</custom_data>
+		</cell_definition>
+		
+	</cell_definitions>
+	
+	
+	
+	<user_parameters>
+		<random_seed type="int" units="dimensionless">0</random_seed> 
+		 
+
+		
+		<div_ACE2 description="--ACE2 receptor model initialization--" type="divider" />
+			<ACE2_receptors_per_cell description="number of ACE2 receptors per cell" type="double" units="dimensionless">1000</ACE2_receptors_per_cell>
+		
+		<div_initialization description="---Initialization Options--" type="divider" />
+			<multiplicity_of_infection description="multiplicity of infection: virions/cells at t=0" type="double" units="none">0.01</multiplicity_of_infection>
+			<use_single_infected_cell description="Infect center cell with one virion (overrides MOI)" type="bool" units="none">false</use_single_infected_cell>
+			
+			<number_of_CD8_Tcells description="initial number of CD8 T cells" type="int" units="none">50</number_of_CD8_Tcells>
+			<number_of_macrophages description="initial number of macrophages" type="int" units="none">1</number_of_macrophages>
+			<number_of_neutrophils description="initial number of neutrophils" type="int" units="none">10</number_of_neutrophils>
+			<number_of_dead_cells description="initial number of apoptotic epithelial cells" type="int" units="none">0</number_of_dead_cells>
+			<number_of_infected_cells description="initial number of infected epithelial cells" type="int" units="none">100</number_of_infected_cells>
+			<number_of_uninfected_cells description="initial number of uninfected epithelial cells" type="int" units="none">0</number_of_uninfected_cells>
+
+
+		<div_colors description="---Cell Color Options--" type="divider" />
+		
+			<lung_epithelium_color description="" type="string">blue</lung_epithelium_color>
+			<CD8_Tcell_color description="" type="string">red</CD8_Tcell_color>
+			<Macrophage_color description="" type="string">lime</Macrophage_color>
+			<Neutrophil_color description="" type="string">cyan</Neutrophil_color>
+		
+	</user_parameters>
+	
+</PhysiCell_settings>
