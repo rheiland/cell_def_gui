@@ -111,6 +111,7 @@ class CellsDefTab(object):
         units_button_layout ={'width':'15%'}
         desc_button_layout={'width':'45%'}
         divider_button_layout={'width':'40%'}
+        box_layout = Layout(display='flex', flex_flow='row', align_items='stretch', width='100%')
 
         self.parent_name = Text(value='None',placeholder='Type something',description='Parent:',disabled=True)
 
@@ -330,6 +331,42 @@ for cell_def in uep.findall('cell_definition'):
         print('cycle name=',child.attrib['name'])
         elm_str += handle_divider_pheno(prefix + "cycle") + ", "
         print(elm_str)
+        for rates in child:
+            print('--- rates elm=',rates)
+            units_str = rates.attrib['units']
+            btn_str = indent + "units_btn = Button(description='" + units_str + "', disabled=True, layout=units_button_layout)\n"
+            cells_tab_header += btn_str
+            rate_count = 0
+            for rate in rates:
+                print('----- rate elm=',rate)
+                btn_name = "transition rate: " + rate.attrib['start_index'] + "->" + rate.attrib['end_index']
+                w1 = "cycle_rate_btn" + str(rate_count) 
+                btn_str = indent + w1 + " = Button(description='" + btn_name + "', disabled=True, layout=name_button_layout)\n"
+                cells_tab_header += btn_str
+
+                w2 = "self.cycle_rate_float" + str(rate_count)
+                btn_str = indent + w2 + " = FloatText(value='" + rate.text + "',  style=style, layout=widget_layout)\n"
+                cells_tab_header += btn_str
+
+                # row1 = [cycle_rate_btn1, self.cycle_rate_float1, units_btn] 
+                row_name = "row" + str(rate_count)
+                row_str = indent + row_name + " = [" + w1 + ", " + w2 +  ", units_btn]\n"
+                cells_tab_header += row_str
+
+        # box_layout = Layout(display='flex', flex_flow='row', align_items='stretch', width='100%')
+        # box1 = Box(children=row1, layout=box_layout)
+                box_name = "box" + str(rate_count) 
+                box_str = indent + box_name + " = Box(children=" + row_name + ", layout=box_layout)\n\n"
+                cells_tab_header += box_str 
+                elm_str += box_name + ", "
+
+                rate_count += 1
+        # param_name2 = Button(description='transition rate: 1->2', disabled=True, layout=name_button_layout)
+        # param_name2.style.button_color = 'lightgreen'
+        # param_name2_units = Button(description='1/min', disabled=True, layout=units_button_layout) 
+        # param_name2_units.style.button_color = 'lightgreen'
+        # self.cycle_trans_rate2 = FloatText(value=0.0002,step=0.00001,style=style, layout=widget_layout)
+
     elif child.tag == 'death':
         for death_model in child:
             print('death code=',death_model.attrib['code'])
