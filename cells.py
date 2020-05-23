@@ -311,6 +311,9 @@ cells_tab_header += "\n\n"
 main_vbox_str += indent2 + "self.cell_type_parent_row, \n"
 #    cells_tab_header += "\n" + indent + row_name + " = " + "Button(description='" + child.attrib['description'] + "', disabled=True, layout=divider_button_layout)\n"
 
+
+cells_tab_header += ndent + "self.cell_def_vboxes = []\n" 
+
 #--------- for each <cell_definition>
 cell_def_count = 0
 for cell_def in uep.findall('cell_definition'):
@@ -355,9 +358,13 @@ for cell_def in uep.findall('cell_definition'):
   cell_def_vbox_str += indent2 + elm_str
 #   for idx in range(cell_def_count_start,cell_def_count_end+1)
     # cell_def_vbox_str += indent + "])\n"
-  cell_def_vbox_str += indent + "])\n\n"
+  cell_def_vbox_str += indent + "])\n"
+
   main_vbox_str += vbox_name + ", " 
   cells_tab_header += cell_def_vbox_str
+
+#   self.cell_def_vboxes.append(self.cell_def_vbox0)
+  cells_tab_header += indent + "self.cell_def_vboxes.append(" + vbox_name + ")\n\n"
   cell_def_count += 1
 
 main_vbox_str += indent + "])"
