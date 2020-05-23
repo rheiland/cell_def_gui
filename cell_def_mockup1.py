@@ -28,9 +28,11 @@ class CellsDefTab(object):
 
         self.parent_name = Text(value='None',placeholder='Type something',description='Parent:',disabled=True)
 
-        self.cell_type = Dropdown(description='Cell type:',)
-        self.cell_type.style = {'description_width': '%sch' % str(len(self.cell_type.description) + 1)}
+        self.cell_type_dropdown = Dropdown(description='Cell type:',)
+        self.cell_type_dropdown.style = {'description_width': '%sch' % str(len(self.cell_type_dropdown.description) + 1)}
 
+        self.cell_type_parent_row = HBox([self.cell_type_dropdown, self.parent_name])
+        self.cell_type_parent_dict = {}
 
         self.cell_type_dict = {}
         self.cell_type_dict['default'] = 'default'
@@ -39,8 +41,15 @@ class CellsDefTab(object):
         self.cell_type_dict['CD8 Tcell'] = 'CD8 Tcell'
         self.cell_type_dict['macrophage'] = 'macrophage'
         self.cell_type_dict['neutrophil'] = 'neutrophil'
-        self.cell_type.options = self.cell_type_dict
+        self.cell_type_dropdown.options = self.cell_type_dict
+        self.cell_type_dropdown.observe(self.cell_type_cb)
 
+        self.cell_type_parent_dict['default'] = 'None'
+        self.cell_type_parent_dict['lung epithelium'] = 'default'
+        self.cell_type_parent_dict['immune'] = 'default'
+        self.cell_type_parent_dict['CD8 Tcell'] = 'immune'
+        self.cell_type_parent_dict['macrophage'] = 'immune'
+        self.cell_type_parent_dict['neutrophil'] = 'immune'
         units_button1 = Button(description='', disabled=True, layout=units_button_layout) 
         units_button1.style.button_color = 'lightgreen'
         units_button2 = Button(description='', disabled=True, layout=units_button_layout) 
@@ -70,21 +79,18 @@ class CellsDefTab(object):
 
         box_layout = Layout(display='flex', flex_flow='row', align_items='stretch', width='100%')
 
-        item_layout = Layout(height='500px', min_width='40px')
-        items = [Button(layout=item_layout, description=str(i), button_style='warning') for i in range(40)]
-        box_layout = Layout(overflow='scroll hidden',
-                    border='3px solid black',
-                    width='',
-                    height='400px',
-                    flex_flow='row',
-                    display='flex')
-        carousel = Box(children=items, layout=box_layout)
-       VBox([Label('Scroll horizontally:'), carousel])
-
         self.tab = VBox([
-          self.cell_type, 
-          carousel,
+          self.cell_type_parent_row, 
         ])
+    #------------------------------
+    def cell_type_cb(self, change):
+      if change['type'] == 'change' and change['name'] == 'value':
+        # print("changed to %s" % change['new'])
+        self.parent_name.value = self.cell_type_parent_dict[change['new']]
+        # self.vbox1.layout.visibility = 'hidden'  # vs. visible
+        # self.vbox1.layout.visibility = None 
+        # self.vbox1.layout.display = 'none' 
+
 
     # Populate the GUI widgets with values from the XML
     def fill_gui(self, xml_root):
