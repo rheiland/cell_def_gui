@@ -36,6 +36,7 @@ import xml.etree.ElementTree as ET
 config_file = "config.xml"
 colorname1 = 'lightgreen'
 colorname2 = 'tan'
+color_idx = 0
 
 num_args = len(sys.argv)
 print("num_args=",num_args)
@@ -67,6 +68,7 @@ print()
 print("config_file = ",config_file)
 print("colorname1 = ",colorname1)
 print("colorname2 = ",colorname2)
+colorname = [colorname1,colorname2]
 print()
 
 if (num_args == 3):
@@ -319,6 +321,7 @@ for cell_def in uep.findall('cell_definition'):
   print('pheno=',uep_phenotype)
   prefix = 'phenotype:'
   elm_str = ""
+  rate_count = 0
   for child in uep_phenotype:
     print('pheno child=',child)
     if child.tag == 'cycle':
@@ -331,13 +334,18 @@ for cell_def in uep.findall('cell_definition'):
             units_str = rates.attrib['units']
             btn_str = indent + "units_btn = Button(description='" + units_str + "', disabled=True, layout=units_button_layout)\n"
             cells_tab_header += btn_str
-            rate_count = 0
+            # rate_count = 0
             for rate in rates:
                 print('----- rate elm=',rate)
                 btn_name = "transition rate: " + rate.attrib['start_index'] + "->" + rate.attrib['end_index']
                 w1 = "cycle_rate_btn" + str(rate_count) 
                 btn_str = indent + w1 + " = Button(description='" + btn_name + "', disabled=True, layout=name_button_layout)\n"
                 cells_tab_header += btn_str
+        # if (param_count % 2):
+            # desc_buttons_str += indent + desc_row_name + ".style.button_color = '" + colorname1 + "'\n"
+                color_str = indent + w1 + ".style.button_color = '" + colorname[color_idx] + "'\n"
+                color_idx = 1 - color_idx
+                # cells_tab_header += color_str
 
                 w2 = "self.cycle_rate_float" + str(rate_count)
                 btn_str = indent + w2 + " = FloatText(value='" + rate.text + "',  style=style, layout=widget_layout)\n"
@@ -357,7 +365,8 @@ for cell_def in uep.findall('cell_definition'):
 
         # box_layout = Layout(display='flex', flex_flow='row', align_items='stretch', width='100%')
         # box1 = Box(children=row1, layout=box_layout)
-                box_name = "box" + str(rate_count) 
+                box_name = "box" + str(box_count) 
+                box_count += 1
                 box_str = indent + box_name + " = Box(children=" + row_name + ", layout=box_layout)\n\n"
                 cells_tab_header += box_str 
                 elm_str += box_name + ", "
@@ -387,8 +396,35 @@ for cell_def in uep.findall('cell_definition'):
         print(elm_str)
 
         for elm in child:
+   					# <speed units="micron/min">4</speed>
+					# <persistence_time units="min">1</persistence_time>
+					# <migration_bias units="dimensionless">0.5</migration_bias>
             if elm.tag == 'options':
+                for opt_elm in elm:
+                    # # print('opt_elm = ',opt_elm)
+                    # print('opt_elm.tag = ',opt_elm.tag)
+                    if opt_elm.tag == 'enabled':
+   					# <options>
+					# 	<enabled>true</enabled>
+					# 	<use_2D>true</use_2D>
+					# 	<chemotaxis>
+					# 		<enabled>true</enabled>
+					# 		<substrate>chemokine</substrate>
+					# 		<direction>1</direction>
+					# 	</chemotaxis>
+					# </options>
+                        full_name = "self." + elm.tag + '_' + opt_elm.tag + str(motility_count)
+                        if opt_elm.text.lower() == 'true':
+                            val = "True"
+                        else:
+                            val = "False"
+                        toggle_str = indent + full_name + " = Checkbox(description='enabled', value=" + val + ",layout=name_button_layout)\n"
+                        cells_tab_header += toggle_str
+                        elm_str += full_name + ","
+    #    if uep.find('.//options//calculate_gradients').text.lower() == 'true':
+    #       self.calculate_gradient.value = True
                 continue
+
             cells_tab_header += "\n"
             print('--- motility elm.tag=',elm.tag)
             btn_str = indent + "name_btn = Button(description='" + elm.tag + "', disabled=True, layout=name_button_layout)\n"
