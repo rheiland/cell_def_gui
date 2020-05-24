@@ -153,11 +153,6 @@ fill_gui_str= """
 
     # Populate the GUI widgets with values from the XML
     def fill_gui(self, xml_root):
-        uep = xml_root.find('.//microenvironment_setup')  # find unique entry point
-        vp = []   # pointers to <variable> nodes
-        if uep:
-            for var in uep.findall('variable'):
-                vp.append(var)
 
 """
 
@@ -165,11 +160,6 @@ fill_xml_str= """
 
     # Read values from the GUI widgets to enable editing XML
     def fill_xml(self, xml_root):
-        uep = xml_root.find('.//microenvironment_setup')  # find unique entry point
-        vp = []   # pointers to <variable> nodes
-        if uep:
-            for var in uep.findall('variable'):
-                vp.append(var)
 
 """
 cell_type_dropdown_cb = """
@@ -315,12 +305,17 @@ main_vbox_str += indent2 + "self.cell_type_parent_row, \n"
 
 cells_tab_header += ndent + "self.cell_def_vboxes = []\n" 
 
+motility_count = 0
 #--------- for each <cell_definition>
 cell_def_count = 0
+box_count = 0
+fill_gui_str += indent + "uep = xml_root.find('.//cell_definition')  # find unique entry point\n"
+fill_xml_str += indent + "uep = xml_root.find('.//cell_definition')  # find unique entry point\n"
 for cell_def in uep.findall('cell_definition'):
 #   handle_divider_pheno("---------------")
   cell_def_count_start = cell_def_count
   uep_phenotype = cell_def.find('phenotype')
+  fill_gui_str += indent + "uep = xml_root.find('.//cell_definitions')  # find unique entry point\n"
   print('pheno=',uep_phenotype)
   prefix = 'phenotype:'
   elm_str = ""
@@ -347,6 +342,13 @@ for cell_def in uep.findall('cell_definition'):
                 w2 = "self.cycle_rate_float" + str(rate_count)
                 btn_str = indent + w2 + " = FloatText(value='" + rate.text + "',  style=style, layout=widget_layout)\n"
                 cells_tab_header += btn_str
+
+                # Create appropriate code for 'fill_gui' function
+                fill_gui_str += "#" +indent + w2 + ".value = " + 'float' + "(uep.find('.//" + child.tag + "').text)\n"
+
+                # Create appropriate code for 'fill_xml' function
+                fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
+
 
                 # row1 = [cycle_rate_btn1, self.cycle_rate_float1, units_btn] 
                 row_name = "row" + str(rate_count)
@@ -380,8 +382,37 @@ for cell_def in uep.findall('cell_definition'):
         elm_str += handle_divider_pheno(prefix + "mechanics") + ", "
         print(elm_str)
     elif child.tag == 'motility':
+        motility_count += 1
         elm_str += handle_divider_pheno(prefix + "motility") + ", "
         print(elm_str)
+
+        for elm in child:
+            if elm.tag == 'options':
+                continue
+            cells_tab_header += "\n"
+            print('--- motility elm.tag=',elm.tag)
+            btn_str = indent + "name_btn = Button(description='" + elm.tag + "', disabled=True, layout=name_button_layout)\n"
+            cells_tab_header += btn_str
+
+            full_name = "self." + child.tag + '_' + elm.tag + str(motility_count)
+            float_str = indent + full_name + " = FloatText(value='" + elm.text + "', style=style, layout=widget_layout)\n"
+            cells_tab_header += float_str
+            # self.motility_persistence_time1 = FloatText(value='0.02',  style=style, layout=widget_layout)
+            if 'units' in elm.attrib.keys():
+                units_str = elm.attrib['units']
+                btn_str = indent + "units_btn = Button(description='" + units_str + "', disabled=True, layout=units_button_layout)\n"
+                cells_tab_header += btn_str
+
+            # motility_row3 = [name_btn, self.motility_migration_bias1 , units_btn]
+            row_str = indent + "row = [name_btn, " + full_name + ", units_btn]\n"
+            cells_tab_header += row_str
+            # motility_box3 = Box(children=motility_row3, layout=box_layout)
+            box_name = "box" + str(box_count)
+            box_count += 1
+            box_str = indent + box_name + " = Box(children=row, layout=box_layout)\n"
+            cells_tab_header += box_str
+            elm_str += box_name + ","
+
     elif child.tag == 'secretion':
         elm_str += handle_divider_pheno(prefix + "secretion") + ", "
         print(elm_str)
@@ -397,8 +428,10 @@ for cell_def in uep.findall('cell_definition'):
     # cell_def_vbox_str += indent + "])\n"
   cell_def_vbox_str += indent + "])\n"
 
-  main_vbox_str += vbox_name + ", " 
+  if cell_def_count >= 0:  # NOTE: kind of assuming 0th is "default"
+    main_vbox_str += vbox_name + ", " 
   cells_tab_header += cell_def_vbox_str
+  cells_tab_header += indent + "# ------------------------------------------\n"
 
 #   self.cell_def_vboxes.append(self.cell_def_vbox0)
   cells_tab_header += indent + "self.cell_def_vboxes.append(" + vbox_name + ")\n\n"
