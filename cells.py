@@ -461,12 +461,14 @@ for cell_def in uep.findall('cell_definition'):
                                 row_name = "chemotaxis_substrate" + str(motility_count)
                                 chemo_subtrate_str = indent + row_name + " = " + "Button(description='substrate', disabled=True, layout=name_button_layout)\n"
                                 cells_tab_header += chemo_subtrate_str 
-                                # elm_str += row_name + ","
+                                print('substrate color_idx = ',color_idx)
+                                color_str = indent + row_name + ".style.button_color = '" + colorname[color_idx] + "'\n"
+                                color_idx = 1 - color_idx
+                                cells_tab_header += color_str
 
                                 substrate_name = "self.chemotaxis_substrate" + str(motility_count)
                                 substrate_text_str = indent + substrate_name + " = Text(value='" + chemotaxis_elm.text + "', style=style, layout=widget_layout)\n"
                                 cells_tab_header += substrate_text_str
-                                # elm_str += substrate_name + ","
 
                                 row_str = indent + "row = [" + row_name + ", " + substrate_name + "]\n"
                                 cells_tab_header += row_str
@@ -481,6 +483,9 @@ for cell_def in uep.findall('cell_definition'):
                                 row_name = "chemotaxis_direction" + str(motility_count)
                                 chemo_subtrate_str = indent + row_name + " = " + "Button(description='direction', disabled=True, layout=name_button_layout)\n"
                                 cells_tab_header += chemo_subtrate_str 
+                                print('direction color_idx = ',color_idx)
+                                color_str = indent + row_name + ".style.button_color = '" + colorname[color_idx] + "'\n"
+                                cells_tab_header += color_str
 
                                 full_name = "self.chemotaxis_direction" + str(motility_count)
                                 dir_text_str = indent + full_name + " = Text(value='" + chemotaxis_elm.text + "', style=style, layout=widget_layout)\n"
