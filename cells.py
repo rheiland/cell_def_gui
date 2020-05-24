@@ -332,8 +332,6 @@ for cell_def in uep.findall('cell_definition'):
         for rates in child:
             print('--- rates elm=',rates)
             units_str = rates.attrib['units']
-            btn_str = indent + "units_btn = Button(description='" + units_str + "', disabled=True, layout=units_button_layout)\n"
-            cells_tab_header += btn_str
             # rate_count = 0
             for rate in rates:
                 print('----- rate elm=',rate)
@@ -344,12 +342,21 @@ for cell_def in uep.findall('cell_definition'):
         # if (param_count % 2):
             # desc_buttons_str += indent + desc_row_name + ".style.button_color = '" + colorname1 + "'\n"
                 color_str = indent + w1 + ".style.button_color = '" + colorname[color_idx] + "'\n"
-                color_idx = 1 - color_idx
-                # cells_tab_header += color_str
+                cells_tab_header += color_str
+
 
                 w2 = "self.cycle_rate_float" + str(rate_count)
                 btn_str = indent + w2 + " = FloatText(value='" + rate.text + "',  style=style, layout=widget_layout)\n"
                 cells_tab_header += btn_str
+
+                w3 = "units_btn" + str(rate_count) 
+                btn_str = indent + w3 + " = Button(description='" + units_str + "', disabled=True, layout=units_button_layout)\n"
+                cells_tab_header += btn_str
+
+                color_str = indent + w3 + ".style.button_color = '" + colorname[color_idx] + "'\n"
+                cells_tab_header += color_str
+
+                color_idx = 1 - color_idx
 
                 # Create appropriate code for 'fill_gui' function
                 fill_gui_str += "#" +indent + w2 + ".value = " + 'float' + "(uep.find('.//" + child.tag + "').text)\n"
@@ -360,7 +367,7 @@ for cell_def in uep.findall('cell_definition'):
 
                 # row1 = [cycle_rate_btn1, self.cycle_rate_float1, units_btn] 
                 row_name = "row" + str(rate_count)
-                row_str = indent + row_name + " = [" + w1 + ", " + w2 +  ", units_btn]\n"
+                row_str = indent + row_name + " = [" + w1 + ", " + w2 +  ", " + w3 + "]\n"
                 cells_tab_header += row_str
 
         # box_layout = Layout(display='flex', flex_flow='row', align_items='stretch', width='100%')
@@ -421,26 +428,106 @@ for cell_def in uep.findall('cell_definition'):
                         toggle_str = indent + full_name + " = Checkbox(description='enabled', value=" + val + ",layout=name_button_layout)\n"
                         cells_tab_header += toggle_str
                         elm_str += full_name + ","
+
+                    elif opt_elm.tag == 'use_2D':
+                        full_name = "self." + elm.tag + '_' + opt_elm.tag + str(motility_count)
+                        if opt_elm.text.lower() == 'true':
+                            val = "True"
+                        else:
+                            val = "False"
+                        toggle_str = indent + full_name + " = Checkbox(description='use_2D', value=" + val + ",layout=name_button_layout)\n"
+                        cells_tab_header += toggle_str
+                        elm_str += full_name + ","
+
+                    elif opt_elm.tag == 'chemotaxis':
+                        cells_tab_header += "\n"
+                        chemo_header_str = indent + row_name + " = " + "Button(description='chemotaxis', disabled=True, layout={'width':'30%'})\n"
+                        cells_tab_header += chemo_header_str 
+                        elm_str += row_name + ","
+
+                        for chemotaxis_elm in opt_elm:
+                            cells_tab_header += "\n"
+                            if chemotaxis_elm.tag == 'enabled':
+                                full_name = "self." + elm.tag + '_' + opt_elm.tag + str(motility_count)
+                                if opt_elm.text.lower() == 'true':
+                                    val = "True"
+                                else:
+                                    val = "False"
+                                toggle_str = indent + full_name + " = Checkbox(description='enabled', value=" + val + ",layout=name_button_layout)\n"
+                                cells_tab_header += toggle_str
+                                elm_str += full_name + ","
+
+                            elif chemotaxis_elm.tag == 'substrate':
+                                row_name = "chemotaxis_substrate" + str(motility_count)
+                                chemo_subtrate_str = indent + row_name + " = " + "Button(description='substrate', disabled=True, layout=name_button_layout)\n"
+                                cells_tab_header += chemo_subtrate_str 
+                                # elm_str += row_name + ","
+
+                                substrate_name = "self.chemotaxis_substrate" + str(motility_count)
+                                substrate_text_str = indent + substrate_name + " = Text(value='" + chemotaxis_elm.text + "', style=style, layout=widget_layout)\n"
+                                cells_tab_header += substrate_text_str
+                                # elm_str += substrate_name + ","
+
+                                row_str = indent + "row = [" + row_name + ", " + substrate_name + "]\n"
+                                cells_tab_header += row_str
+                                # motility_box3 = Box(children=motility_row3, layout=box_layout)
+                                box_name = "box" + str(box_count)
+                                box_count += 1
+                                box_str = indent + box_name + " = Box(children=row, layout=box_layout)\n"
+                                cells_tab_header += box_str
+                                elm_str += box_name + ","
+
+                            elif chemotaxis_elm.tag == 'direction':
+                                row_name = "chemotaxis_direction" + str(motility_count)
+                                chemo_subtrate_str = indent + row_name + " = " + "Button(description='direction', disabled=True, layout=name_button_layout)\n"
+                                cells_tab_header += chemo_subtrate_str 
+
+                                full_name = "self.chemotaxis_direction" + str(motility_count)
+                                dir_text_str = indent + full_name + " = Text(value='" + chemotaxis_elm.text + "', style=style, layout=widget_layout)\n"
+                                cells_tab_header += dir_text_str
+
+                                row_str = indent + "row = [" + row_name + ", " + full_name + "]\n"
+                                cells_tab_header += row_str
+                                # motility_box3 = Box(children=motility_row3, layout=box_layout)
+                                box_name = "box" + str(box_count)
+                                box_count += 1
+                                box_str = indent + box_name + " = Box(children=row, layout=box_layout)\n"
+                                cells_tab_header += box_str
+                                elm_str += box_name + ","
+
+
+
+
     #    if uep.find('.//options//calculate_gradients').text.lower() == 'true':
     #       self.calculate_gradient.value = True
                 continue
 
             cells_tab_header += "\n"
             print('--- motility elm.tag=',elm.tag)
-            btn_str = indent + "name_btn = Button(description='" + elm.tag + "', disabled=True, layout=name_button_layout)\n"
+            name_btn = child.tag + '_' + elm.tag + "name" + str(motility_count)
+            btn_str = indent + name_btn + " = Button(description='" + elm.tag + "', disabled=True, layout=name_button_layout)\n"
             cells_tab_header += btn_str
 
-            full_name = "self." + child.tag + '_' + elm.tag + str(motility_count)
-            float_str = indent + full_name + " = FloatText(value='" + elm.text + "', style=style, layout=widget_layout)\n"
+            color_str = indent + name_btn + ".style.button_color = '" + colorname[color_idx] + "'\n"
+            cells_tab_header += color_str
+
+            name_float = "self." + child.tag + '_' + elm.tag + str(motility_count)
+            float_str = indent + name_float + " = FloatText(value='" + elm.text + "', style=style, layout=widget_layout)\n"
             cells_tab_header += float_str
             # self.motility_persistence_time1 = FloatText(value='0.02',  style=style, layout=widget_layout)
             if 'units' in elm.attrib.keys():
                 units_str = elm.attrib['units']
-                btn_str = indent + "units_btn = Button(description='" + units_str + "', disabled=True, layout=units_button_layout)\n"
+                name_units = child.tag + '_' + elm.tag + "units" + str(motility_count)
+                btn_str = indent + name_units + " = Button(description='" + units_str + "', disabled=True, layout=units_button_layout)\n"
                 cells_tab_header += btn_str
 
+                color_str = indent + name_units + ".style.button_color = '" + colorname[color_idx] + "'\n"
+                cells_tab_header += color_str
+
+            color_idx = 1 - color_idx
+
             # motility_row3 = [name_btn, self.motility_migration_bias1 , units_btn]
-            row_str = indent + "row = [name_btn, " + full_name + ", units_btn]\n"
+            row_str = indent + "row = [" + name_btn + ", " + name_float + ", " +  name_units + "]\n"
             cells_tab_header += row_str
             # motility_box3 = Box(children=motility_row3, layout=box_layout)
             box_name = "box" + str(box_count)
