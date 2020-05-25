@@ -4,14 +4,12 @@ Let's copy and edit https://github.com/MathCancer/PhysiCell/blob/development-pau
 to create a cleaned up `cells.xml` file just for this project.
 
 We will focus on *just* parsing the `<cell_definitions>` in the .xml, so let's make a copy of the original `xml2jupyter.py` script and edit it to *just* generate the cell definitions GUI.
+
+Run this to generate the Python module that will become the `Cells` tab in the GUI (see google doc).
 ```
-$ cp xml2jupyter.py cells.py
+$ python cells.py config-immune-response.xml
 ```
-Eventually we will just run this to generate the Python module that will become the `Cells` tab in the GUI (see google doc).
-```
-$ python cells.py cells.xml
-```
-Finally, we will test the created Jupyter GUI with:
+Test the created Jupyter GUI with:
 ```
 $ jupyter notebook test_gui.ipynb
 ```
