@@ -344,7 +344,6 @@ for cell_def in uep.findall('cell_definition'):
                 color_str = indent + w1 + ".style.button_color = '" + colorname[color_idx] + "'\n"
                 cells_tab_header += color_str
 
-
                 w2 = "self.cycle_rate_float" + str(rate_count)
                 btn_str = indent + w2 + " = FloatText(value='" + rate.text + "',  style=style, layout=widget_layout)\n"
                 cells_tab_header += btn_str
@@ -386,11 +385,154 @@ for cell_def in uep.findall('cell_definition'):
         # self.cycle_trans_rate2 = FloatText(value=0.0002,step=0.00001,style=style, layout=widget_layout)
 
     elif child.tag == 'death':
+        death_model_count = 0
+        elm_str += handle_divider_pheno(prefix + "death") + ", "
         for death_model in child:
+            row_name = "death_model" + str(death_model_count)
+            death_model_count += 1
+            death_header_str = indent + row_name + " = " + "Button(description='" + death_model.attrib['name'] + "', disabled=True, layout={'width':'30%'})\n"
+            cells_tab_header += death_header_str 
+            elm_str += row_name + ","
+
             print('death code=',death_model.attrib['code'])
             print('death name=',death_model.attrib['name'])
-            elm_str += handle_divider_pheno(prefix + "death:" + death_model.attrib['name']) + ", "
+            # elm_str += handle_divider_pheno(prefix + "death:" + death_model.attrib['name']) + ", "
             print(elm_str)
+
+            #----------  overall death model rate -------------
+            rate = death_model.find('.//rate')  
+            print('rate units=',rate.attrib['units'])
+
+            # w1 = "self.death_model_rate" + str(rate_count)
+            w1 = "self.death_model_rate" + str(death_model_count)
+            btn_str = indent + w1 + " = Button(description='rate', disabled=True, layout=name_button_layout)\n"
+            cells_tab_header += btn_str
+            color_str = indent + w1 + ".style.button_color = '" + colorname[color_idx] + "'\n"
+            cells_tab_header += color_str
+
+            w2 = "self.cycle_rate_float" + str(rate_count)
+            btn_str = indent + w2 + " = FloatText(value='" + rate.text + "',  style=style, layout=widget_layout)\n"
+            cells_tab_header += btn_str
+
+            w3 = "units_btn" + str(rate_count) 
+            btn_str = indent + w3 + " = Button(description='" + units_str + "', disabled=True, layout=units_button_layout)\n"
+            cells_tab_header += btn_str
+
+            color_str = indent + w3 + ".style.button_color = '" + colorname[color_idx] + "'\n"
+            cells_tab_header += color_str
+
+            color_idx = 1 - color_idx
+
+            # Create appropriate code for 'fill_gui' function
+            fill_gui_str += "#" +indent + w2 + ".value = " + 'float' + "(uep.find('.//" + child.tag + "').text)\n"
+            # Create appropriate code for 'fill_xml' function
+            fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
+
+
+            # row1 = [cycle_rate_btn1, self.cycle_rate_float1, units_btn] 
+            row_name = "row" + str(rate_count)
+            row_str = indent + row_name + " = [" + w1 + ", " + w2 +  ", " + w3 + "]\n"
+            cells_tab_header += row_str
+
+    # box_layout = Layout(display='flex', flex_flow='row', align_items='stretch', width='100%')
+    # box1 = Box(children=row1, layout=box_layout)
+            box_name = "box" + str(box_count) 
+            box_count += 1
+            box_str = indent + box_name + " = Box(children=" + row_name + ", layout=box_layout)\n\n"
+            cells_tab_header += box_str 
+            elm_str += box_name + ", "
+
+
+            #----------  death model transition rate(s) -------------
+            # TODO: fixed_duration
+            t_rate = death_model.find('.//transition_rates')  
+            print('t_rate units=',t_rate.attrib['units'])
+            for rate in t_rate:
+                print('   ' + rate.attrib['start_index'] + ' -> ' + rate.attrib['end_index'])
+
+                # btn_name = death_model.attrib['name'] + " rate: " + rate.attrib['start_index'] + "->" + rate.attrib['end_index']
+                btn_name = "transition rate: " + rate.attrib['start_index'] + "->" + rate.attrib['end_index']
+                w1 = "cycle_rate_btn" + str(rate_count) 
+                btn_str = indent + w1 + " = Button(description='" + btn_name + "', disabled=True, layout=name_button_layout)\n"
+                cells_tab_header += btn_str
+                color_str = indent + w1 + ".style.button_color = '" + colorname[color_idx] + "'\n"
+                cells_tab_header += color_str
+
+                w2 = "self.cycle_rate_float" + str(rate_count)
+                btn_str = indent + w2 + " = FloatText(value='" + rate.text + "',  style=style, layout=widget_layout)\n"
+                cells_tab_header += btn_str
+
+                w3 = "units_btn" + str(rate_count) 
+                btn_str = indent + w3 + " = Button(description='" + units_str + "', disabled=True, layout=units_button_layout)\n"
+                cells_tab_header += btn_str
+
+                color_str = indent + w3 + ".style.button_color = '" + colorname[color_idx] + "'\n"
+                cells_tab_header += color_str
+
+                color_idx = 1 - color_idx
+
+                # Create appropriate code for 'fill_gui' function
+                fill_gui_str += "#" +indent + w2 + ".value = " + 'float' + "(uep.find('.//" + child.tag + "').text)\n"
+                # Create appropriate code for 'fill_xml' function
+                fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
+
+
+                # row1 = [cycle_rate_btn1, self.cycle_rate_float1, units_btn] 
+                row_name = "row" + str(rate_count)
+                row_str = indent + row_name + " = [" + w1 + ", " + w2 +  ", " + w3 + "]\n"
+                cells_tab_header += row_str
+
+        # box_layout = Layout(display='flex', flex_flow='row', align_items='stretch', width='100%')
+        # box1 = Box(children=row1, layout=box_layout)
+                box_name = "box" + str(box_count) 
+                box_count += 1
+                box_str = indent + box_name + " = Box(children=" + row_name + ", layout=box_layout)\n\n"
+                cells_tab_header += box_str 
+                elm_str += box_name + ", "
+
+            #----------  death model <parameters> -------------
+            d_params = death_model.find('.//parameters')  
+            for d_elm in d_params:
+                w1 = d_elm.tag + "_" + death_model.attrib['name'] 
+                btn_str = indent + w1 + " = Button(description='" + d_elm.tag + "', disabled=True, layout=name_button_layout)\n"
+                cells_tab_header += btn_str
+                color_str = indent + w1 + ".style.button_color = '" + colorname[color_idx] + "'\n"
+                cells_tab_header += color_str
+
+                w2 = "self." + w1 + "_float" 
+                btn_str = indent + w2 + " = FloatText(value='" + d_elm.text + "',  style=style, layout=widget_layout)\n"
+                cells_tab_header += btn_str
+
+                # w3 = "units_btn" +  d_elm.attrib['units'] 
+                w3 = "units_btn" 
+                btn_str = indent + w3 + " = Button(description='" + units_str + "', disabled=True, layout=units_button_layout)\n"
+                cells_tab_header += btn_str
+                color_str = indent + w3 + ".style.button_color = '" + colorname[color_idx] + "'\n"
+                cells_tab_header += color_str
+
+                color_idx = 1 - color_idx
+
+                # Create appropriate code for 'fill_gui' function
+                fill_gui_str += "#" +indent + w2 + ".value = " + 'float' + "(uep.find('.//" + child.tag + "').text)\n"
+                # Create appropriate code for 'fill_xml' function
+                fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
+
+
+                # row1 = [cycle_rate_btn1, self.cycle_rate_float1, units_btn] 
+                # row_name = "row" + str(rate_count)
+                row_name = "row" 
+                row_str = indent + row_name + " = [" + w1 + ", " + w2 +  ", " + w3 + "]\n"
+                cells_tab_header += row_str
+
+        # box_layout = Layout(display='flex', flex_flow='row', align_items='stretch', width='100%')
+        # box1 = Box(children=row1, layout=box_layout)
+                box_name = "box" + str(box_count) 
+                box_count += 1
+                box_str = indent + box_name + " = Box(children=" + row_name + ", layout=box_layout)\n\n"
+                cells_tab_header += box_str 
+                elm_str += box_name + ", "
+
+
     elif child.tag == 'volume':
         elm_str += handle_divider_pheno(prefix + "volume") + ", "
         print(elm_str)
@@ -441,6 +583,7 @@ for cell_def in uep.findall('cell_definition'):
 
                     elif opt_elm.tag == 'chemotaxis':
                         cells_tab_header += "\n"
+                        row_name = "chemotaxis_btn"
                         chemo_header_str = indent + row_name + " = " + "Button(description='chemotaxis', disabled=True, layout={'width':'30%'})\n"
                         cells_tab_header += chemo_header_str 
                         elm_str += row_name + ","
