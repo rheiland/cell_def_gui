@@ -120,7 +120,6 @@ class CellsDefTab(object):
 
         self.cell_type_dropdown = Dropdown(description='Cell type:',)
         self.cell_type_dropdown.style = {'description_width': '%sch' % str(len(self.cell_type_dropdown.description) + 1)}
-        # self.cell_type_dropdown.observe(self.cell_type_cb)
 
         self.cell_type_parent_row = HBox([self.cell_type_dropdown, self.parent_name])
         self.cell_type_parent_dict = {}
@@ -145,6 +144,21 @@ fill_xml_str= """
             print('fill_xml: ',cell_def)
 
 """
+
+display_cell_type_default = """
+    #------------------------------
+    def display_cell_type_default(self):
+        # print("display_cell_type_default():")
+        #print("    self.cell_type_parent_dict = ",self.cell_type_parent_dict)
+
+        # There's probably a better way to do this, but for now,
+        # we hide all vboxes containing the widgets for the different cell defs
+        # and only display the contents of 'default'
+        for vb in self.cell_def_vboxes:
+            vb.layout.display = 'none'   # vs. 'contents'
+        self.cell_def_vboxes[0].layout.display = 'contents'
+"""
+
 cell_type_dropdown_cb = """
     #------------------------------
     def cell_type_cb(self, change):
@@ -290,6 +304,7 @@ for child in uep.findall('cell_definition'):
         parent_str = "'None'"
     cells_tab_header += ndent + "self.cell_type_parent_dict[" + name_str + "] = " + parent_str 
 cells_tab_header += "\n\n"
+# e.g., self.cell_type_parent_dict =  {'default': 'None', 'lung epithelium': 'default', 'immune': 'default', 'CD8 Tcell': 'immune', 'macrophage': 'immune', 'neutrophil': 'immune'}
 
 
 main_vbox_str += indent2 + "self.cell_type_parent_row, \n"
@@ -1048,6 +1063,7 @@ fp.write(row_str)
 fp.write(box_str)
 fp.write(main_vbox_str)
 fp.write(cell_type_dropdown_cb)
+fp.write(display_cell_type_default)
 fp.write(fill_gui_str)
 fp.write(fill_xml_str)
 fp.close()
