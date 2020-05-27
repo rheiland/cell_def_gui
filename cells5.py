@@ -889,125 +889,219 @@ for cell_def in uep.findall('cell_definition'):
 
     #---- create widgets:  name, value (float, bool?, string?), units, description
 
-    for cd in uep_custom_data:   
+    for child in uep_custom_data:   
         # if print_vars:
         if True:
-            print(' >> custom_data:  ',cd.tag, cd.attrib)
+            print(' >> custom_data:  ',child.tag, child.attrib)
 
-        w1 = "name_btn"
-        cells_tab_header += "\n" + indent + w1 + " = " + "Button(description='" + cd.tag + "', disabled=True, layout=name_button_layout)\n"
-        color_str = indent + w1 + ".style.button_color = '" + colorname[color_idx] + "'\n"
-        cells_tab_header += color_str
-        color_idx = 1 - color_idx
-
-        param_count += 1
-        w2 = "self.custom_data" + str(param_count)
-        # cells_tab_header += "\n" + indent + full_name + " = " + widgets[child.attrib['type']] + "(\n"
-        cells_tab_header += "\n" + indent + w2 + " = FloatText(" 
-
-        # Try to calculate and provide a "good" delta step (for the tiny "up/down" arrows on a numeric widget)
-        # if ('type' not in child.attrib.keys()) or child.attrib['type'] == "double":
-        # if assume_double or child.attrib['type'] == "double":
-        # if child.attrib['type'] == "double":
-        #     fval_abs = abs(float(child.text))
-        #     if (fval_abs > 0.0):
-        #         if (fval_abs > 1.0):  # crop
-        #             delta_val = pow(10, int(math.log10(abs(float(child.text)))) - 1)
-        #         else:   # round
-        #             delta_val = pow(10, round(math.log10(abs(float(child.text)))) - 1)
-        #     else:
-        #         delta_val = 0.01  # if initial value=0.0, we're totally guessing at what a good delta is
-        #     if print_var_types:
-        #         print('double: ',float(child.text),', delta_val=',delta_val)
-
-        cells_tab_header += indent2 + "value=" + cd.text + ",\n"
-
-        # if (not divider_flag):
-            # We're processing a "normal" row - typically a name, numeric field, units, description
-            #  - append the info at the end of this widget
-        cells_tab_header += indent2 + "style=style, layout=widget_layout)\n"
-
-
-        w3 = "units_btn" 
-        if 'units' in cd.attrib.keys():
-            units_str = cd.attrib['units']
+        divider_flag = False
+        if 'type' in child.attrib.keys() and child.attrib['type'].lower() == 'divider':
+            divider_flag = True
         else:
-            units_str = ""
-        btn_str = indent + w3 + " = Button(description='" + units_str + "', disabled=True, layout=units_button_layout)\n"
-        cells_tab_header += btn_str
+            param_count += 1
 
-        color_str = indent + w3 + ".style.button_color = '" + colorname[color_idx] + "'\n"
-        cells_tab_header += color_str
-        color_idx = 1 - color_idx
-
-
-        w4 = "description_btn" 
-        if 'description' in cd.attrib.keys():
-            description_str = cd.attrib['description']
+        # we allow the divider elements to have the same name, but not other elements
+        if (child.tag in tag_list) and (not divider_flag):
+            print("-------> Warning: duplicate tag!  ", child.tag)
+            continue
         else:
-            description_str = ""
-        btn_str = indent + w4 + " = Button(description='" + description_str + "', disabled=True, layout=desc_button_layout)\n"
-        cells_tab_header += btn_str
+            tag_list.append(child.tag)
 
-        color_str = indent + w4 + ".style.button_color = '" + colorname[color_idx] + "'\n"
-        cells_tab_header += color_str
-        color_idx = 1 - color_idx
+        # units_str = ""
+        # describe_str = ""
+        if 'hidden' in child.attrib.keys() and (child.attrib['hidden'].lower() == "true"):   # do we want to hide this from the user?
+            print("  HIDE this parameter from the GUI: ", child.tag)
+            continue
 
-        row_name = "row"
-        row_str = indent +  row_name + " = [" + w1 + ", " + w2 + ", " +  w3 + ", " + w4 + "] \n"
+        # desc_row_name = ''
+        # units_btn_name = ''
 
-        # cells_tab_header += "# --------- rwh1"
-        cells_tab_header += row_str + "\n"
+        if not divider_flag:
+            if 'description' in child.attrib.keys():
+                describe_str = child.attrib['description']
+            else:
+                describe_str = ""
+            # desc_row_name = "desc_button" + str(param_count)
+            w4 = "desc_button" 
+            # desc_buttons_str += indent + w4 + " = " + "Button(description='" + describe_str + "', disabled=True, layout=desc_button_layout) \n"
+            cells_tab_header += "\n" + indent + w4 + " = " + "Button(description='" + describe_str + "', disabled=True, layout=desc_button_layout) \n"
+            # print("--- debug: " + desc_row_name + " --> " + describe_str)   #rwh debug
 
-        box_name = "box" + str(param_count)
-        cells_tab_header += indent + box_name + " = Box(children=" + row_name + ", layout=box_layout)\n"
-        # else:  # divider
-        #     # box_str += indent + box_name + " = Box(children=" + row_name + ", layout=box_layout)\n"
-        #     cells_tab_header += indent + box_name + " = Box(children=" + row_name + ", layout=box_layout)\n"
+            if (param_count % 2):
+                cells_tab_header += indent + w4 + ".style.button_color = '" + colorname1 + "'\n"
+            else:  # rf.  https://www.w3schools.com/colors/colors_names.asp
+                cells_tab_header += indent + w4 + ".style.button_color = '" + colorname2 + "'\n"
 
-        # cells_tab_header += box_str + "\n"
-        elm_str += indent2 + box_name + ",\n"
+        if 'units' in child.attrib.keys():
+            if child.attrib['units'] != "dimensionless" and child.attrib['units'] != "none":
+    #            units_str = child.attrib['units']
+                units_count += 1
+                # units_btn_name = "units_button" + str(units_count)
+                w3 = "units_button" 
+                cells_tab_header += indent + w3 + " = " + "Button(description='" + child.attrib['units'] + "', disabled=True, layout=units_button_layout) \n"
+                if (param_count % 2):
+                    cells_tab_header += indent + w3 + ".style.button_color = '" + colorname1 + "'\n"
+                else:  # rf.  https://www.w3schools.com/colors/colors_names.asp
+                    cells_tab_header += indent + w3 + ".style.button_color = '" + colorname2 + "'\n"
+            else:
+                # units_count += 1
+                # units_btn_name = "units_button" + str(units_count)
+                w3 = "units_button" 
+                cells_tab_header += indent + w3 + " = " + "Button(description='" +  "', disabled=True, layout=units_button_layout) \n"
+                if (param_count % 2):
+                    cells_tab_header += indent + w3 + ".style.button_color = '" + colorname1 + "'\n"
+                else:  # rf.  https://www.w3schools.com/colors/colors_names.asp
+                    cells_tab_header += indent + w3 + ".style.button_color = '" + colorname2 + "'\n"
 
-                # if (not divider_flag):
-                #     # float, int, bool
-                #     if (type_cast[child.attrib['type']] == "bool"):
-                #         fill_gui_str += indent + full_name + ".value = ('true' == (uep.find('.//" + child.tag + "').text.lower()) )\n"
-                #     else:
-                #         fill_gui_str += indent + full_name + ".value = " + type_cast[child.attrib['type']] + "(uep.find('.//" + child.tag + "').text)\n"
+        else:  # no 'units' --> blank (disabled) button
+            # units_count += 1
+            # units_btn_name = "units_button" + str(units_count)
+            w3 = "units_button" 
+            cells_tab_header += indent + w3 + " = " + "Button(description='" +  "', disabled=True, layout=units_button_layout) \n"
+            if (param_count % 2):
+                cells_tab_header += indent + w3 + ".style.button_color = '" + colorname1 + "'\n"
+            else:  # rf.  https://www.w3schools.com/colors/colors_names.asp
+                cells_tab_header += indent + w3 + ".style.button_color = '" + colorname2 + "'\n"
 
-                #     fill_xml_str += indent + "uep.find('.//" + child.tag + "').text = str("+ full_name + ".value)\n"
+        # if 'type' in child.attrib.keys():
+        # e.g., child.attrib['type'] == "double":
+        if 'type' in child.attrib.keys():
+    #             self.therapy_activation_time = BoundedFloatText(
+    #            min=0., max=100000000, step=stepsize,
+            full_name = "self." + child.tag
+            # name_count += 1
+            if child.attrib['type'] not in custom_data_widgets.keys():
+                print("    *** Error - Invalid type: " + child.attrib['type'])
+                sys.exit(1)
+            else:    
+                # The "divider" type elements are unique; let's handle them in their own function
+                if divider_flag:
+                    handle_divider(child)
+                    continue
+
+                w1 = "param_name" 
+                cells_tab_header += "\n" + indent + w1 + " = " + "Button(description='" + child.tag + "', disabled=True, layout=name_button_layout)\n"
+                if (param_count % 2):
+                    cells_tab_header += indent + w1 + ".style.button_color = '" + colorname1 + "'\n"
+                else:  # rf.  https://www.w3schools.com/colors/colors_names.asp
+                    cells_tab_header += indent + w1 + ".style.button_color = '" + colorname2 + "'\n"
+
+                name_count += 1
+                full_name = "self.custom_data" + str(name_count)
+                cells_tab_header += "\n" + indent + full_name + " = " + widgets[child.attrib['type']] + "(\n"
+
+                # Try to calculate and provide a "good" delta step (for the tiny "up/down" arrows on a numeric widget)
+                # if ('type' not in child.attrib.keys()) or child.attrib['type'] == "double":
+                # if assume_double or child.attrib['type'] == "double":
+                if child.attrib['type'] == "double":
+                    fval_abs = abs(float(child.text))
+                    if (fval_abs > 0.0):
+                        if (fval_abs > 1.0):  # crop
+                            delta_val = pow(10, int(math.log10(abs(float(child.text)))) - 1)
+                        else:   # round
+                            delta_val = pow(10, round(math.log10(abs(float(child.text)))) - 1)
+                    else:
+                        delta_val = 0.01  # if initial value=0.0, we're totally guessing at what a good delta is
+                    if print_var_types:
+                        print('double: ',float(child.text),', delta_val=',delta_val)
+
+                    cells_tab_header += indent2 + "value=" + child.text + ",\n"
+                    # Note: "step" values will advance the value to the nearest multiple of the step value itself :-/
+                    cells_tab_header += indent2 + "step=" + str(delta_val) + ",\n"
+
+                # Integers
+                elif child.attrib['type'] == "int":  # warning: math.log(1000,10)=2.99..., math.log10(1000)=3  
+                    if (abs(int(child.text)) > 0):
+                        delta_val = pow(10,int(math.log10(abs(int(child.text)))) - 1)
+                    else:
+                        delta_val = 1  # if initial value=0, we're totally guessing at what a good delta is
+                    if print_var_types:
+                        print('int: ',int(child.text),', delta_val=',delta_val)
+
+                    cells_tab_header += indent2 + "value=" + child.text + ",\n"
+                    cells_tab_header += indent2 + "step=" + str(delta_val) + ",\n"
+
+                # Booleans
+                elif child.attrib['type'] == "bool":
+                    if (child.text.lower() == "true"):
+                        child.text = "True"
+                    elif (child.text.lower() == "false"):
+                        child.text = "False"
+                    else:
+                        print(" --- ERROR: bool must be True or False, not ", child.text)
+                        sys.exit(1)
+
+                    if print_var_types:
+                        print('bool: ',child.text)
+                    cells_tab_header += indent2 + "value=" + child.text + ",\n"
+                
+                # Strings
+                elif child.attrib['type'] == "string":
+                    cells_tab_header += indent2 + "value='" + child.text + "',\n"
+
+                # row_name = "row" + str(param_count)
+                row_name = "row"
+                box_name = "box" + str(param_count)
+                if (not divider_flag):
+                    # We're processing a "normal" row - typically a name, numeric field, units, description
+                    #  - append the info at the end of this widget
+                    cells_tab_header += indent2 + "style=style, layout=widget_layout)\n"
+
+                    # row_str += indent +  row_name + " = [" + param_name_button + ", " + full_name + ", " +      units_btn_name + ", " + desc_row_name + "] \n"
+                    row_str += indent +  row_name + " = [" + w1 + ", " + full_name + ", " +  w3 + ", " + w4 + "] \n"
+
+                    cells_tab_header += "# --------- rwh1"
+                    cells_tab_header += row_str + "\n"
+
+                    # box_str += indent + box_name + " = Box(children=" + row_name + ", layout=box_layout)\n"
+                    cells_tab_header += indent + box_name + " = Box(children=" + row_name + ", layout=box_layout)\n"
+                else:  # divider
+                    # box_str += indent + box_name + " = Box(children=" + row_name + ", layout=box_layout)\n"
+                    cells_tab_header += indent + box_name + " = Box(children=" + row_name + ", layout=box_layout)\n"
+
+                cells_tab_header += box_str + "\n"
+                elm_str += indent2 + box_name + ",\n"
+
+                if (not divider_flag):
+                    # float, int, bool
+                    if (type_cast[child.attrib['type']] == "bool"):
+                        fill_gui_str += indent + full_name + ".value = ('true' == (uep.find('.//" + child.tag + "').text.lower()) )\n"
+                    else:
+                        fill_gui_str += indent + full_name + ".value = " + type_cast[child.attrib['type']] + "(uep.find('.//" + child.tag + "').text)\n"
+
+                    fill_xml_str += indent + "uep.find('.//" + child.tag + "').text = str("+ full_name + ".value)\n"
 
         #---------------------
-        # else: # missing 'type' in child.attrib.keys() --> assume "double"
-        #     continue
-        #     print("-------- no 'type' attrib in custom_data element")
+        else: # missing 'type' in child.attrib.keys() --> assume "double"
+            continue
+            print("-------- no 'type' attrib in custom_data element")
 
-        #     w1 = "param_name" 
-        #     cells_tab_header += "\n" + indent + w1 + " = " + "Button(description='" + child.tag + "', disabled=True, layout=name_button_layout)\n"
-        #     if (param_count % 2):
-        #         cells_tab_header += indent + w1 + ".style.button_color = '" + colorname1 + "'\n"
-        #     else:  # rf.  https://www.w3schools.com/colors/colors_names.asp
-        #         cells_tab_header += indent + w1 + ".style.button_color = '" + colorname2 + "'\n"
+            w1 = "param_name" 
+            cells_tab_header += "\n" + indent + w1 + " = " + "Button(description='" + child.tag + "', disabled=True, layout=name_button_layout)\n"
+            if (param_count % 2):
+                cells_tab_header += indent + w1 + ".style.button_color = '" + colorname1 + "'\n"
+            else:  # rf.  https://www.w3schools.com/colors/colors_names.asp
+                cells_tab_header += indent + w1 + ".style.button_color = '" + colorname2 + "'\n"
 
-        #     name_count += 1
-        #     full_name = "self.custom_data" + str(name_count)
-        #     # cells_tab_header += "\n" + indent + full_name + " = FloatW" + widgets[child.attrib['type']] + "(\n"
-        #     # cells_tab_header = indent + full_name + " = FloatText(value='" + rate.text + "',  style=style, layout=widget_layout)\n"
-        #     cells_tab_header += indent + full_name + " = FloatText(value='42' , style=style, layout=widget_layout)\n"
+            name_count += 1
+            full_name = "self.custom_data" + str(name_count)
+            # cells_tab_header += "\n" + indent + full_name + " = FloatW" + widgets[child.attrib['type']] + "(\n"
+            # cells_tab_header = indent + full_name + " = FloatText(value='" + rate.text + "',  style=style, layout=widget_layout)\n"
+            cells_tab_header += indent + full_name + " = FloatText(value='42' , style=style, layout=widget_layout)\n"
 
-        #     if (not divider_flag):
-        #         # We're processing a "normal" row - typically a name, numeric field, units, description
-        #         #  - append the info at the end of this widget
-        #         # cells_tab_header += indent2 + "style=style, layout=widget_layout)\n"
+            if (not divider_flag):
+                # We're processing a "normal" row - typically a name, numeric field, units, description
+                #  - append the info at the end of this widget
+                # cells_tab_header += indent2 + "style=style, layout=widget_layout)\n"
 
-        #         # row_str += indent +  row_name + " = [" + param_name_button + ", " + full_name + ", " +      units_btn_name + ", " + desc_row_name + "] \n"
-        #         row_name = "row"
-        #         row_str += indent +  row_name + " = [" + w1 + ", " + full_name + ", " +  w3 + ", " + w4 + "] \n"
+                # row_str += indent +  row_name + " = [" + param_name_button + ", " + full_name + ", " +      units_btn_name + ", " + desc_row_name + "] \n"
+                row_name = "row"
+                row_str += indent +  row_name + " = [" + w1 + ", " + full_name + ", " +  w3 + ", " + w4 + "] \n"
 
-        #         cells_tab_header += row_str + "\n"
+                cells_tab_header += row_str + "\n"
 
-        #         box_name = "box" + str(param_count)
-        #         box_str += indent + box_name + " = Box(children=" + row_name + ", layout=box_layout)\n"
+                box_name = "box" + str(param_count)
+                box_str += indent + box_name + " = Box(children=" + row_name + ", layout=box_layout)\n"
 
   #======================================================================
   #------------  assemble VBox for this cell type
