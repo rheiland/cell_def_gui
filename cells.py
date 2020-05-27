@@ -131,7 +131,8 @@ fill_gui_str= """
 
     # Populate the GUI widgets with values from the XML
     def fill_gui(self, xml_root):
-        return
+        float_var_count = 0
+        uep = xml_root.find('.//cell_definitions')  # find unique entry point
 
 """
 
@@ -139,7 +140,9 @@ fill_xml_str= """
 
     # Read values from the GUI widgets to enable editing XML
     def fill_xml(self, xml_root):
-        return
+        uep = xml_root.find('.//cell_definitions')  # find unique entry point
+        for cell_def in uep.findall('cell_definition'):
+            print('fill_xml: ',cell_def)
 
 """
 cell_type_dropdown_cb = """
@@ -212,6 +215,10 @@ color_count = 0
 name_count = 0
 units_count = 0
 
+
+custom_data_widgets = {"double":"FloatText", "int":"IntText", "bool":"Checkbox", "string":"Text", "divider":""}
+custom_data_type_cast = {"double":"float", "int":"int", "bool":"bool", "string":"", "divider":"Text"}
+
 #---------- cell_definitions --------------------
 # TODO: cast attributes to lower case before doing equality tests; perform more testing!
 
@@ -224,7 +231,7 @@ uep = root.find('.//cell_definitions')  # find unique entry point (uep)
 # name_count = 0
 # units_count = 0
 
-print_vars = True
+print_vars = False
 print_var_types = False
 
 tag_list = []
@@ -260,7 +267,10 @@ ndent2 = "\n" + indent2
 cells_tab_header += ndent + "self.cell_type_dict = {}"  
 #row_name + " = " + "Button(description='" + child.attrib['description'] + "', disabled=True, layout=divider_button_layout)\n"
 
-#--------- for each <cell_definition>
+
+#--------- Let's do a 3-pass parsing of <cell_definitions> in the .xml file
+
+#--- 1) create a dict ("cell_type_dict") of <cell_definition> names
 for child in uep.findall('cell_definition'):
     if print_vars:
         print(child.tag, child.attrib)
@@ -272,7 +282,7 @@ for child in uep.findall('cell_definition'):
 cells_tab_header += ndent + "self.cell_type_dropdown.options = self.cell_type_dict\n"
 cells_tab_header += ndent + "self.cell_type_dropdown.observe(self.cell_type_cb)\n"
             
-# create parent dict for each cell_definition
+#--- 2) create a dict ("cell_type_parent_dict") of <cell_definition> parents
 for child in uep.findall('cell_definition'):
     name_str = "'" + child.attrib['name'] + "'"
     if 'parent_type' in child.attrib:
@@ -292,33 +302,47 @@ cells_tab_header += ndent + "self.cell_def_vboxes = []\n"
 motility_count = 0
 cell_def_count = 0
 box_count = 0
-# fill_gui_str += indent + "uep = xml_root.find('.//cell_definition')  # find unique entry point\n"
+
+#--- 3) primary pass to generate all ipywidgets Python code, initialize their values from those 
+#       in the .xml, and generate code for the 2 functions, "fill_gui" and "fill_xml"
+#       
 for cell_def in uep.findall('cell_definition'):
 #   handle_divider_pheno("---------------")
 #   fill_gui_str += indent + "cell_def = uep.find('.//cell_definition')
-  cell_def_count_start = cell_def_count
+  cell_def_count_start =cell_def_count 
   uep_phenotype = cell_def.find('phenotype')
+  			# </phenotype>
+			# <custom_data> 
+
+  float_path_str0 = "float(uep.find('.//phenotype[" + str(cell_def_count+1) + "]"
+
 #   fill_gui_str += indent + "uep_phenotype = cell_def.find('.//phenotype')
-  print('pheno=',uep_phenotype)
+#   print('pheno=',uep_phenotype)
   prefix = 'phenotype:'
   elm_str = ""
   rate_count = 0
   for child in uep_phenotype:
     print('pheno child=',child)
     if child.tag == 'cycle':
+        # float_str += float(uep.find('.//phenotype[1]//cycle//transition_rates//rate[1]').text)
+        float_path_str = float_path_str0  + "//cycle"
         # fill_gui_str += indent + "child_def = uep.find('.//cell_def')
-        print('cycle code=',child.attrib['code'])
-        print('cycle name=',child.attrib['name'])
+        # print('cycle code=',child.attrib['code'])
+        # print('cycle name=',child.attrib['name'])
+
+        # TODO: show (allow edit??) the cycle code/name
         divider_pheno_name = handle_divider_pheno(prefix + "cycle") 
         elm_str += divider_pheno_name + ", "
-        print(elm_str)
+        # print(elm_str)
         color_str = indent + divider_pheno_name + ".style.button_color = '" + colorname[color_idx] + "'\n"
+
+        float_path_str += "//transition_rates"
         for rates in child:
-            print('--- rates elm=',rates)
+            # print('--- rates elm=',rates)
             units_str = rates.attrib['units']
-            # rate_count = 0
+            rate_count = 0
             for rate in rates:
-                print('----- rate elm=',rate)
+                # print('----- rate elm=',rate)
                 btn_name = "transition rate: " + rate.attrib['start_index'] + "->" + rate.attrib['end_index']
                 w1 = "name_btn"
                 btn_str = indent + w1 + " = Button(description='" + btn_name + "', disabled=True, layout=name_button_layout)\n"
@@ -334,9 +358,13 @@ for cell_def in uep.findall('cell_definition'):
                 cells_tab_header += btn_str
 
                 # fill_gui_str += "#" +indent + w2 + ".value = " + 'float' + "(uep.find('.//" + child.tag + "').text)\n"
+                rate_count += 1
+                # self.float0.value = float(uep.find('.//phenotype[1]//cycle//transition_rates//rate[1]').text)
+                float_gui_str = float_path_str +  "//rate[" + str(rate_count) + "]').text)\n"
+                fill_gui_str += indent + w2 + " = " + float_gui_str
+
                 # fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
 
-                # w3 = "units_btn" + str(rate_count) 
                 w3 = "units_btn" 
                 btn_str = indent + w3 + " = Button(description='" + units_str + "', disabled=True, layout=units_button_layout)\n"
                 cells_tab_header += btn_str
@@ -345,7 +373,6 @@ for cell_def in uep.findall('cell_definition'):
                 cells_tab_header += color_str
                 color_idx = 1 - color_idx
 
-                # row_name = "row" + str(rate_count)
                 row_name = "row" 
                 row_str = indent + row_name + " = [" + w1 + ", " + w2 +  ", " + w3 + "]\n"
                 cells_tab_header += row_str
@@ -356,28 +383,31 @@ for cell_def in uep.findall('cell_definition'):
                 cells_tab_header += box_str 
                 elm_str += box_name + ", "
 
-                rate_count += 1
 
     elif child.tag == 'death':
+        float_path_str = float_path_str0  + "//death"
         death_model_count = 0
         elm_str += handle_divider_pheno(prefix + "death") + ", "
         for death_model in child:
-            row_name = "death_model" + str(death_model_count)
+            # float_gui_str = float_path_str +  "//model[" + str(death_model_count) + "]').text)\n"
             death_model_count += 1
+            float_gui_str = float_path_str +  "//model[" + str(death_model_count) + "]"
+            row_name = "death_model" + str(death_model_count)
             death_header_str = indent + row_name + " = " + "Button(description='" + death_model.attrib['name'] + "', disabled=True, layout={'width':'30%'})\n"
             cells_tab_header += death_header_str 
             elm_str += row_name + ","
 
-            print('death code=',death_model.attrib['code'])
-            print('death name=',death_model.attrib['name'])
+            # print('death code=',death_model.attrib['code'])
+            # print('death name=',death_model.attrib['name'])
             # elm_str += handle_divider_pheno(prefix + "death:" + death_model.attrib['name']) + ", "
-            print(elm_str)
+            # print(elm_str)
 
             #----------  overall death model rate -------------
             rate = death_model.find('.//rate')  
-            print('rate units=',rate.attrib['units'])
 
-            # w1 = "self.death_model_rate" + str(death_model_count)
+            float_gui_str += "//rate').text)\n"
+            # print('rate units=',rate.attrib['units'])
+
             w1 = "name_btn"
             btn_str = indent + w1 + " = Button(description='rate', disabled=True, layout=name_button_layout)\n"
             cells_tab_header += btn_str
@@ -398,9 +428,9 @@ for cell_def in uep.findall('cell_definition'):
             cells_tab_header += color_str
             color_idx = 1 - color_idx
 
-            # Create appropriate code for 'fill_gui' function
             # fill_gui_str += "#" +indent + w2 + ".value = " + 'float' + "(uep.find('.//" + child.tag + "').text)\n"
-            # Create appropriate code for 'fill_xml' function
+            # fill_gui_str += indent + w2 + ".value = " + 'float' + \n"
+            fill_gui_str += indent + w2 + " = " + float_gui_str + "\n"
             # fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
 
 
@@ -424,7 +454,7 @@ for cell_def in uep.findall('cell_definition'):
             # TODO: fixed_duration
             t_rate = death_model.find('.//transition_rates')  
             rate_count
-            print('t_rate units=',t_rate.attrib['units'])
+            # print('t_rate units=',t_rate.attrib['units'])
             for rate in t_rate:
                 # argh, these widget names have gotten out of control
                 w0 = "self." + cell_def.tag + "_death_model_" + death_model.attrib["code"] + "_trate" + rate.attrib['start_index'] + rate.attrib['end_index'] + "_toggle"
@@ -459,9 +489,9 @@ for cell_def in uep.findall('cell_definition'):
                 cells_tab_header += color_str
                 color_idx = 1 - color_idx
 
-                # Create appropriate code for 'fill_gui' function
                 # fill_gui_str += "#" +indent + w2 + ".value = " + 'float' + "(uep.find('.//" + child.tag + "').text)\n"
-                # Create appropriate code for 'fill_xml' function
+                # float_gui_str = float_path_str +  "//rate[" + str(rate_count) + "]').text)\n"
+
                 # fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
 
                 # row1 = [cycle_rate_btn1, self.cycle_rate_float1, units_btn] 
@@ -515,7 +545,7 @@ for cell_def in uep.findall('cell_definition'):
 
     elif child.tag == 'volume':
         elm_str += handle_divider_pheno(prefix + "volume") + ", "
-        print(elm_str)
+        # print(elm_str)
         for elm in child:
             # w1 = child.tag + '_' + elm.tag 
             w1 = "name_btn"
@@ -554,7 +584,7 @@ for cell_def in uep.findall('cell_definition'):
 
     elif child.tag == 'mechanics':
         elm_str += handle_divider_pheno(prefix + "mechanics") + ", "
-        print(elm_str)
+        # print(elm_str)
         for elm in child:
             if elm.tag == 'options':
                 for opt_elm in elm:
@@ -643,7 +673,7 @@ for cell_def in uep.findall('cell_definition'):
     elif child.tag == 'motility':
         motility_count += 1
         elm_str += handle_divider_pheno(prefix + "motility") + ", "
-        print(elm_str)
+        # print(elm_str)
 
         for elm in child:
             if elm.tag == 'options':
@@ -691,7 +721,7 @@ for cell_def in uep.findall('cell_definition'):
                                 row_name = "chemotaxis_substrate" + str(motility_count)
                                 chemo_subtrate_str = indent + row_name + " = " + "Button(description='substrate', disabled=True, layout=name_button_layout)\n"
                                 cells_tab_header += chemo_subtrate_str 
-                                print('substrate color_idx = ',color_idx)
+                                # print('substrate color_idx = ',color_idx)
                                 color_str = indent + row_name + ".style.button_color = '" + colorname[color_idx] + "'\n"
                                 color_idx = 1 - color_idx
                                 cells_tab_header += color_str
@@ -713,7 +743,7 @@ for cell_def in uep.findall('cell_definition'):
                                 row_name = "chemotaxis_direction" + str(motility_count)
                                 chemo_subtrate_str = indent + row_name + " = " + "Button(description='direction', disabled=True, layout=name_button_layout)\n"
                                 cells_tab_header += chemo_subtrate_str 
-                                print('direction color_idx = ',color_idx)
+                                # print('direction color_idx = ',color_idx)
                                 color_str = indent + row_name + ".style.button_color = '" + colorname[color_idx] + "'\n"
                                 color_idx = 1 - color_idx
                                 cells_tab_header += color_str
@@ -768,7 +798,7 @@ for cell_def in uep.findall('cell_definition'):
 
     elif child.tag == 'secretion':
         elm_str += handle_divider_pheno(prefix + "secretion") + ", "
-        print(elm_str)
+        # print(elm_str)
         substrate_count = 0
         for elm in child:
             if elm.tag == 'substrate':
@@ -832,8 +862,33 @@ for cell_def in uep.findall('cell_definition'):
 
     elif child.tag == 'molecular':
         elm_str += handle_divider_pheno(prefix + "molecular") + ", "
-        print(elm_str)
+        # print(elm_str)
 
+
+  #------------  process <custom_data>
+
+# custom_data_widgets = {"double":"FloatText", "int":"IntText", "bool":"Checkbox", "string":"Text", "divider":""}
+# custom_data_type_cast = {"double":"float", "int":"int", "bool":"bool", "string":"", "divider":"Text"}
+
+#   uep_phenotype = cell_def.find('phenotype')
+  uep_custom_data = cell_def.find('custom_data')
+  if uep_custom_data:  # if there are no elements in <custom_data>, we don't show the empty divider 
+    print("------- parse <custom_data> for " + cell_def.attrib['name'] + "  ----------")
+    divider_count += 1
+    row_name = "div_row" + str(divider_count)
+    cells_tab_header += "\n" + indent + row_name + " = " + "Button(description='Custom Data',disabled=True, layout=divider_button_layout)\n"
+    #   cells_tab_header += indent + row_name + ".style.button_color = 'red'\n"
+    cells_tab_header += indent + row_name + ".style.button_color = 'cyan'\n"
+    #   main_vbox_str += indent2 + row_name + ",\n"
+    elm_str += row_name + ","
+
+    #---- create widgets:  name, value (float, bool?, string?), units, description
+
+
+
+
+  #======================================================================
+  #------------  assemble VBox for this cell type
   cell_def_count_end = cell_def_count
   vbox_name = "self.cell_def_vbox%d" % cell_def_count
   cell_def_vbox_str = "\n" + indent + vbox_name + " = VBox([\n"
@@ -844,12 +899,15 @@ for cell_def in uep.findall('cell_definition'):
 
   if cell_def_count >= 0:  # NOTE: kind of assuming 0th is "default"
     main_vbox_str += vbox_name + ", " 
+
   cells_tab_header += cell_def_vbox_str
   cells_tab_header += indent + "# ------------------------------------------\n"
 
 #   self.cell_def_vboxes.append(self.cell_def_vbox0)
   cells_tab_header += indent + "self.cell_def_vboxes.append(" + vbox_name + ")\n\n"
   cell_def_count += 1
+
+
 
 main_vbox_str += indent + "])"
 
