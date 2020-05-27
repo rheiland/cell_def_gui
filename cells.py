@@ -375,7 +375,7 @@ for cell_def in uep.findall('cell_definition'):
                 rate_count += 1
                 # self.float0.value = float(uep.find('.//phenotype[1]//cycle//transition_rates//rate[1]').text)
                 float_gui_str = float_path_str +  "//rate[" + str(rate_count) + "]').text)\n"
-                fill_gui_str += indent + w2 + " = " + float_gui_str
+                fill_gui_str += indent + w2 + ".value = " + float_gui_str
 
                 # fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
 
@@ -444,7 +444,8 @@ for cell_def in uep.findall('cell_definition'):
 
             # fill_gui_str += "#" +indent + w2 + ".value = " + 'float' + "(uep.find('.//" + child.tag + "').text)\n"
             # fill_gui_str += indent + w2 + ".value = " + 'float' + \n"
-            fill_gui_str += indent + w2 + " = " + float_gui_str + "\n"
+            # self.float4.value = float(uep.find('.//phenotype[1]//death//model[1]//rate').text)
+            fill_gui_str += indent + w2 + ".value = " + float_gui_str + "\n"
             # fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
 
 
