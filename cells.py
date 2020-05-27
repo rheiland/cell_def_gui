@@ -126,31 +126,6 @@ class CellsDefTab(object):
         self.cell_type_parent_dict = {}
 """
 
-"""
-        self.cell_parent_dict = {'lung epithelium':'default', 'immune':'default', 'CD8 Tcell':'immune'}
-
-        self.therapy_activation_time = BoundedFloatText(
-            min=0.,
-            max=100000000,
-            step=stepsize,
-            description='therapy_activation_time',
-            style=style, layout=layout,
-            # layout=Layout(width=constWidth),
-        )
-        self.save_interval_after_therapy_start = BoundedFloatText(
-            min=0.,
-            max=100000000,
-            step=stepsize,
-            description='save_interval_after_therapy_start',
-            style=style, layout=layout,
-        )
-
-        label_blankline = Label('')
-
-        self.tab = VBox([HBox([self.therapy_activation_time, Label('min')]), 
-                         HBox([self.save_interval_after_therapy_start, Label('min')]), 
-                         ])  
-"""
 
 fill_gui_str= """
 
@@ -226,7 +201,10 @@ row_header_str = "\n"
 box_header_str = "\n"
 #        box1 = Box(children=row1, layout=box_layout)\n"
 
-menv_var_count = 0   # micronenv 
+float_var_count = 0    # FloatText
+bool_var_count = 0   
+text_var_count = 0   
+
 param_count = 0
 divider_count = 0
 color_count = 0
@@ -255,7 +233,7 @@ tag_list = []
 def handle_divider(child):
     global divider_count, cells_tab_header, indent, indent2, main_vbox_str
     divider_count += 1
-    print('-----------> handler_divider: ',divider_count)
+    # print('-----------> handler_divider: ',divider_count)
     row_name = "div_row" + str(divider_count)
     cells_tab_header += "\n" + indent + row_name + " = " + "Button(description='" + child.attrib['description'] + "', disabled=True, layout=divider_button_layout)\n"
     main_vbox_str += indent2 + row_name + ",\n"
@@ -263,7 +241,7 @@ def handle_divider(child):
 def handle_divider_pheno(div_str):
     global divider_count, cells_tab_header, indent, indent2, main_vbox_str
     divider_count += 1
-    print('-----------> handler_divider_pheno: ',divider_count)
+    # print('-----------> handler_divider_pheno: ',divider_count)
     row_name = "div_row" + str(divider_count)
     cells_tab_header += indent + row_name + " = " + "Button(description='" + div_str + "', disabled=True, layout=divider_button_layout)\n"
     cells_tab_header += indent + row_name + ".style.button_color = 'orange'\n"
@@ -342,7 +320,7 @@ for cell_def in uep.findall('cell_definition'):
             for rate in rates:
                 print('----- rate elm=',rate)
                 btn_name = "transition rate: " + rate.attrib['start_index'] + "->" + rate.attrib['end_index']
-                w1 = "cycle_rate_btn" + str(rate_count) 
+                w1 = "name_btn"
                 btn_str = indent + w1 + " = Button(description='" + btn_name + "', disabled=True, layout=name_button_layout)\n"
                 cells_tab_header += btn_str
         # if (param_count % 2):
@@ -350,33 +328,28 @@ for cell_def in uep.findall('cell_definition'):
                 color_str = indent + w1 + ".style.button_color = '" + colorname[color_idx] + "'\n"
                 cells_tab_header += color_str
 
-                w2 = "self.cycle_rate_float" + str(rate_count)
+                w2 = "self.float" + str(float_var_count)
+                float_var_count += 1
                 btn_str = indent + w2 + " = FloatText(value='" + rate.text + "',  style=style, layout=widget_layout)\n"
                 cells_tab_header += btn_str
 
-                w3 = "units_btn" + str(rate_count) 
+                # fill_gui_str += "#" +indent + w2 + ".value = " + 'float' + "(uep.find('.//" + child.tag + "').text)\n"
+                # fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
+
+                # w3 = "units_btn" + str(rate_count) 
+                w3 = "units_btn" 
                 btn_str = indent + w3 + " = Button(description='" + units_str + "', disabled=True, layout=units_button_layout)\n"
                 cells_tab_header += btn_str
 
                 color_str = indent + w3 + ".style.button_color = '" + colorname[color_idx] + "'\n"
                 cells_tab_header += color_str
-
                 color_idx = 1 - color_idx
 
-                # Create appropriate code for 'fill_gui' function
-                # fill_gui_str += "#" +indent + w2 + ".value = " + 'float' + "(uep.find('.//" + child.tag + "').text)\n"
-
-                # Create appropriate code for 'fill_xml' function
-                # fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
-
-
-                # row1 = [cycle_rate_btn1, self.cycle_rate_float1, units_btn] 
-                row_name = "row" + str(rate_count)
+                # row_name = "row" + str(rate_count)
+                row_name = "row" 
                 row_str = indent + row_name + " = [" + w1 + ", " + w2 +  ", " + w3 + "]\n"
                 cells_tab_header += row_str
 
-        # box_layout = Layout(display='flex', flex_flow='row', align_items='stretch', width='100%')
-        # box1 = Box(children=row1, layout=box_layout)
                 box_name = "box" + str(box_count) 
                 box_count += 1
                 box_str = indent + box_name + " = Box(children=" + row_name + ", layout=box_layout)\n\n"
@@ -384,11 +357,6 @@ for cell_def in uep.findall('cell_definition'):
                 elm_str += box_name + ", "
 
                 rate_count += 1
-        # param_name2 = Button(description='transition rate: 1->2', disabled=True, layout=name_button_layout)
-        # param_name2.style.button_color = 'lightgreen'
-        # param_name2_units = Button(description='1/min', disabled=True, layout=units_button_layout) 
-        # param_name2_units.style.button_color = 'lightgreen'
-        # self.cycle_trans_rate2 = FloatText(value=0.0002,step=0.00001,style=style, layout=widget_layout)
 
     elif child.tag == 'death':
         death_model_count = 0
@@ -416,8 +384,8 @@ for cell_def in uep.findall('cell_definition'):
             color_str = indent + w1 + ".style.button_color = '" + colorname[color_idx] + "'\n"
             cells_tab_header += color_str
 
-            # w2 = "self.cycle_rate_float" + str(rate_count)
-            w2 = "self." + cell_def.tag + "_death_model_" + death_model.attrib["code"] + "_rate"
+            w2 = "self.float" + str(float_var_count)
+            float_var_count += 1
             btn_str = indent + w2 + " = FloatText(value='" + rate.text + "',  style=style, layout=widget_layout)\n"
             cells_tab_header += btn_str
 
@@ -428,7 +396,6 @@ for cell_def in uep.findall('cell_definition'):
 
             color_str = indent + w3 + ".style.button_color = '" + colorname[color_idx] + "'\n"
             cells_tab_header += color_str
-
             color_idx = 1 - color_idx
 
             # Create appropriate code for 'fill_gui' function
@@ -438,7 +405,8 @@ for cell_def in uep.findall('cell_definition'):
 
 
             # row1 = [cycle_rate_btn1, self.cycle_rate_float1, units_btn] 
-            row_name = "row" + str(rate_count)
+            # row_name = "row" + str(rate_count)
+            row_name = "row"
             row_str = indent + row_name + " = [" + w1 + ", " + w2 +  ", " + w3 + "]\n"
             cells_tab_header += row_str
 
@@ -446,6 +414,7 @@ for cell_def in uep.findall('cell_definition'):
     # box1 = Box(children=row1, layout=box_layout)
             box_name = "box" + str(box_count) 
             box_count += 1
+            # box_str = indent + box_name + " = Box(children=" + row_name + ", layout=box_layout)\n\n"
             box_str = indent + box_name + " = Box(children=" + row_name + ", layout=box_layout)\n\n"
             cells_tab_header += box_str 
             elm_str += box_name + ", "
@@ -477,7 +446,8 @@ for cell_def in uep.findall('cell_definition'):
                 color_str = indent + w1 + ".style.button_color = '" + colorname[color_idx] + "'\n"
                 cells_tab_header += color_str
 
-                w2 = "self.cycle_rate_float" + str(rate_count)
+                w2 = "self.float" + str(float_var_count)
+                float_var_count += 1
                 btn_str = indent + w2 + " = FloatText(value='" + rate.text + "',  style=style, layout=widget_layout)\n"
                 cells_tab_header += btn_str
 
@@ -487,7 +457,6 @@ for cell_def in uep.findall('cell_definition'):
 
                 color_str = indent + w3 + ".style.button_color = '" + colorname[color_idx] + "'\n"
                 cells_tab_header += color_str
-
                 color_idx = 1 - color_idx
 
                 # Create appropriate code for 'fill_gui' function
@@ -495,14 +464,12 @@ for cell_def in uep.findall('cell_definition'):
                 # Create appropriate code for 'fill_xml' function
                 # fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
 
-
                 # row1 = [cycle_rate_btn1, self.cycle_rate_float1, units_btn] 
-                row_name = "row" + str(rate_count)
+                # row_name = "row" + str(rate_count)
+                row_name = "row"
                 row_str = indent + row_name + " = [" + w0 + ", " + w1 + ", " + w2 +  ", " + w3 + "]\n"
                 cells_tab_header += row_str
 
-        # box_layout = Layout(display='flex', flex_flow='row', align_items='stretch', width='100%')
-        # box1 = Box(children=row1, layout=box_layout)
                 box_name = "box" + str(box_count) 
                 box_count += 1
                 box_str = indent + box_name + " = Box(children=" + row_name + ", layout=box_layout)\n\n"
@@ -512,13 +479,15 @@ for cell_def in uep.findall('cell_definition'):
             #----------  death model <parameters> -------------
             d_params = death_model.find('.//parameters')  
             for elm in d_params:
-                w1 = elm.tag + "_" + death_model.attrib['name'] 
+                # w1 = elm.tag + "_" + death_model.attrib['name'] 
+                w1 = "name_btn"
                 btn_str = indent + w1 + " = Button(description='" + elm.tag + "', disabled=True, layout=name_button_layout)\n"
                 cells_tab_header += btn_str
                 color_str = indent + w1 + ".style.button_color = '" + colorname[color_idx] + "'\n"
                 cells_tab_header += color_str
 
-                w2 = "self." + w1 + "_float" 
+                w2 = "self.float" + str(float_var_count)
+                float_var_count += 1
                 btn_str = indent + w2 + " = FloatText(value='" + elm.text + "',  style=style, layout=widget_layout)\n"
                 cells_tab_header += btn_str
 
@@ -528,23 +497,15 @@ for cell_def in uep.findall('cell_definition'):
                 cells_tab_header += btn_str
                 color_str = indent + w3 + ".style.button_color = '" + colorname[color_idx] + "'\n"
                 cells_tab_header += color_str
-
                 color_idx = 1 - color_idx
 
-                # Create appropriate code for 'fill_gui' function
                 # fill_gui_str += "#" +indent + w2 + ".value = " + 'float' + "(uep.find('.//" + child.tag + "').text)\n"
-                # Create appropriate code for 'fill_xml' function
                 # fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
 
-
-                # row1 = [cycle_rate_btn1, self.cycle_rate_float1, units_btn] 
-                # row_name = "row" + str(rate_count)
                 row_name = "row" 
                 row_str = indent + row_name + " = [" + w1 + ", " + w2 +  ", " + w3 + "]\n"
                 cells_tab_header += row_str
 
-        # box_layout = Layout(display='flex', flex_flow='row', align_items='stretch', width='100%')
-        # box1 = Box(children=row1, layout=box_layout)
                 box_name = "box" + str(box_count) 
                 box_count += 1
                 box_str = indent + box_name + " = Box(children=" + row_name + ", layout=box_layout)\n\n"
@@ -556,13 +517,15 @@ for cell_def in uep.findall('cell_definition'):
         elm_str += handle_divider_pheno(prefix + "volume") + ", "
         print(elm_str)
         for elm in child:
-            w1 = child.tag + '_' + elm.tag 
+            # w1 = child.tag + '_' + elm.tag 
+            w1 = "name_btn"
             btn_str = indent + w1 + " = Button(description='" + elm.tag + "', disabled=True, layout=name_button_layout)\n"
             cells_tab_header += btn_str
             color_str = indent + w1 + ".style.button_color = '" + colorname[color_idx] + "'\n"
             cells_tab_header += color_str
 
-            w2 = "self." + w1 + "_float" 
+            w2 = "self.float" + str(float_var_count)
+            float_var_count += 1
             btn_str = indent + w2 + " = FloatText(value='" + elm.text + "',  style=style, layout=widget_layout)\n"
             cells_tab_header += btn_str
 
@@ -573,23 +536,15 @@ for cell_def in uep.findall('cell_definition'):
             cells_tab_header += btn_str
             color_str = indent + w3 + ".style.button_color = '" + colorname[color_idx] + "'\n"
             cells_tab_header += color_str
-
             color_idx = 1 - color_idx
 
-            # Create appropriate code for 'fill_gui' function
             # fill_gui_str += "#" +indent + w2 + ".value = " + 'float' + "(uep.find('.//" + child.tag + "').text)\n"
-            # Create appropriate code for 'fill_xml' function
             # fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
 
-
-            # row1 = [cycle_rate_btn1, self.cycle_rate_float1, units_btn] 
-            # row_name = "row" + str(rate_count)
             row_name = "row" 
             row_str = indent + row_name + " = [" + w1 + ", " + w2 +  ", " + w3 + "]\n"
             cells_tab_header += row_str
 
-    # box_layout = Layout(display='flex', flex_flow='row', align_items='stretch', width='100%')
-    # box1 = Box(children=row1, layout=box_layout)
             box_name = "box" + str(box_count) 
             box_count += 1
             box_str = indent + box_name + " = Box(children=" + row_name + ", layout=box_layout)\n\n"
@@ -613,13 +568,15 @@ for cell_def in uep.findall('cell_definition'):
                     cells_tab_header += toggle_str
                     # elm_str += full_name + ","
 
-                    w1 = child.tag + '_' + opt_elm.tag 
+                    # w1 = child.tag + '_' + opt_elm.tag 
+                    w1 = "name_btn"
                     btn_str = indent + w1 + " = Button(description='" + opt_elm.tag + "', disabled=True, layout=name_button_layout)\n"
                     cells_tab_header += btn_str
                     color_str = indent + w1 + ".style.button_color = '" + colorname[color_idx] + "'\n"
                     cells_tab_header += color_str
 
-                    w2 = "self." + w1 + "_float" 
+                    w2 = "self.float" + str(float_var_count)
+                    float_var_count += 1
                     btn_str = indent + w2 + " = FloatText(value='" + opt_elm.text + "',  style=style, layout=widget_layout)\n"
                     cells_tab_header += btn_str
 
@@ -630,17 +587,11 @@ for cell_def in uep.findall('cell_definition'):
                     cells_tab_header += btn_str
                     color_str = indent + w3 + ".style.button_color = '" + colorname[color_idx] + "'\n"
                     cells_tab_header += color_str
-
                     color_idx = 1 - color_idx
 
-                    # Create appropriate code for 'fill_gui' function
                     # fill_gui_str += "#" +indent + w2 + ".value = " + 'float' + "(uep.find('.//" + child.tag + "').text)\n"
-                    # Create appropriate code for 'fill_xml' function
                     # fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
 
-
-                    # row1 = [cycle_rate_btn1, self.cycle_rate_float1, units_btn] 
-                    # row_name = "row" + str(rate_count)
                     row_name = "row" 
                     row_str = indent + row_name + " = [" + w0 + ", " + w1 + ", " + w2 +  ", " + w3 + "]\n"
                     cells_tab_header += row_str
@@ -651,13 +602,15 @@ for cell_def in uep.findall('cell_definition'):
                     cells_tab_header += box_str 
                     elm_str += box_name + ", "
             else:
-                w1 = child.tag + '_' + elm.tag 
+                # w1 = child.tag + '_' + elm.tag 
+                w1 = "name_btn"
                 btn_str = indent + w1 + " = Button(description='" + elm.tag + "', disabled=True, layout=name_button_layout)\n"
                 cells_tab_header += btn_str
                 color_str = indent + w1 + ".style.button_color = '" + colorname[color_idx] + "'\n"
                 cells_tab_header += color_str
 
-                w2 = "self." + w1 + "_float" 
+                w2 = "self.float" + str(float_var_count)
+                float_var_count += 1
                 btn_str = indent + w2 + " = FloatText(value='" + elm.text + "',  style=style, layout=widget_layout)\n"
                 cells_tab_header += btn_str
 
@@ -668,17 +621,11 @@ for cell_def in uep.findall('cell_definition'):
                 cells_tab_header += btn_str
                 color_str = indent + w3 + ".style.button_color = '" + colorname[color_idx] + "'\n"
                 cells_tab_header += color_str
-
                 color_idx = 1 - color_idx
 
-                # Create appropriate code for 'fill_gui' function
                 # fill_gui_str += "#" +indent + w2 + ".value = " + 'float' + "(uep.find('.//" + child.tag + "').text)\n"
-                # Create appropriate code for 'fill_xml' function
                 # fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
 
-
-                # row1 = [cycle_rate_btn1, self.cycle_rate_float1, units_btn] 
-                # row_name = "row" + str(rate_count)
                 row_name = "row" 
                 row_str = indent + row_name + " = [" + w1 + ", " + w2 +  ", " + w3 + "]\n"
                 cells_tab_header += row_str
@@ -699,23 +646,9 @@ for cell_def in uep.findall('cell_definition'):
         print(elm_str)
 
         for elm in child:
-   					# <speed units="micron/min">4</speed>
-					# <persistence_time units="min">1</persistence_time>
-					# <migration_bias units="dimensionless">0.5</migration_bias>
             if elm.tag == 'options':
                 for opt_elm in elm:
-                    # # print('opt_elm = ',opt_elm)
-                    # print('opt_elm.tag = ',opt_elm.tag)
                     if opt_elm.tag == 'enabled':
-   					# <options>
-					# 	<enabled>true</enabled>
-					# 	<use_2D>true</use_2D>
-					# 	<chemotaxis>
-					# 		<enabled>true</enabled>
-					# 		<substrate>chemokine</substrate>
-					# 		<direction>1</direction>
-					# 	</chemotaxis>
-					# </options>
                         full_name = "self." + elm.tag + '_' + opt_elm.tag + str(motility_count)
                         if opt_elm.text.lower() == 'true':
                             val = "True"
@@ -797,16 +730,10 @@ for cell_def in uep.findall('cell_definition'):
                                 box_str = indent + box_name + " = Box(children=row, layout=box_layout)\n"
                                 cells_tab_header += box_str
                                 elm_str += box_name + ","
-
-
-
-
-    #    if uep.find('.//options//calculate_gradients').text.lower() == 'true':
-    #       self.calculate_gradient.value = True
                 continue
 
             cells_tab_header += "\n"
-            print('--- motility elm.tag=',elm.tag)
+            # print('--- motility elm.tag=',elm.tag)
             name_btn = child.tag + '_' + elm.tag + "name" + str(motility_count)
             btn_str = indent + name_btn + " = Button(description='" + elm.tag + "', disabled=True, layout=name_button_layout)\n"
             cells_tab_header += btn_str
@@ -814,10 +741,10 @@ for cell_def in uep.findall('cell_definition'):
             color_str = indent + name_btn + ".style.button_color = '" + colorname[color_idx] + "'\n"
             cells_tab_header += color_str
 
-            name_float = "self." + child.tag + '_' + elm.tag + str(motility_count)
+            name_float = "self.float" + str(float_var_count)
+            float_var_count += 1
             float_str = indent + name_float + " = FloatText(value='" + elm.text + "', style=style, layout=widget_layout)\n"
             cells_tab_header += float_str
-            # self.motility_persistence_time1 = FloatText(value='0.02',  style=style, layout=widget_layout)
             if 'units' in elm.attrib.keys():
                 units_str = elm.attrib['units']
                 name_units = child.tag + '_' + elm.tag + "units" + str(motility_count)
@@ -860,7 +787,6 @@ for cell_def in uep.findall('cell_definition'):
 
                 row_str = indent + "row = [" + row_name + ", " + substrate_name + "]\n"
                 cells_tab_header += row_str
-                # motility_box3 = Box(children=motility_row3, layout=box_layout)
                 box_name = "box" + str(box_count)
                 box_count += 1
                 box_str = indent + box_name + " = Box(children=row, layout=box_layout)\n"
@@ -869,7 +795,6 @@ for cell_def in uep.findall('cell_definition'):
                 substrate_count += 1
 
                 for sub_elm in elm:
-                    # name_btn = elm.tag + '_' + sub_elm.tag + "name" + str(motility_count)
                     name_btn = "name_btn"
                     btn_str = indent + name_btn + " = Button(description='" + sub_elm.tag + "', disabled=True, layout=name_button_layout)\n"
                     cells_tab_header += btn_str
@@ -877,11 +802,10 @@ for cell_def in uep.findall('cell_definition'):
                     color_str = indent + name_btn + ".style.button_color = '" + colorname[color_idx] + "'\n"
                     cells_tab_header += color_str
 
-                    # name_float = "self." + child.tag + '_' + sub_elm.tag + str(motility_count)
-                    name_float = "self.secretion_" + sub_elm.tag 
+                    name_float = "self.float" + str(float_var_count)
+                    float_var_count += 1
                     float_str = indent + name_float + " = FloatText(value='" + sub_elm.text + "', style=style, layout=widget_layout)\n"
                     cells_tab_header += float_str
-                    # self.motility_persistence_time1 = FloatText(value='0.02',  style=style, layout=widget_layout)
                     if 'units' in sub_elm.attrib.keys():
                         units_str = sub_elm.attrib['units']
                         # name_units = 'secretion_' + sub_elm.tag + "units" + str(motility_count)
