@@ -156,6 +156,7 @@ fill_gui_str= """
 
     # Populate the GUI widgets with values from the XML
     def fill_gui(self, xml_root):
+        return
 
 """
 
@@ -163,6 +164,7 @@ fill_xml_str= """
 
     # Read values from the GUI widgets to enable editing XML
     def fill_xml(self, xml_root):
+        return
 
 """
 cell_type_dropdown_cb = """
@@ -236,8 +238,8 @@ units_count = 0
 # TODO: cast attributes to lower case before doing equality tests; perform more testing!
 
 uep = root.find('.//cell_definitions')  # find unique entry point (uep) 
-fill_gui_str += indent + "uep = xml_root.find('.//cell_definitions')  # find unique entry point\n"
-fill_xml_str += indent + "uep = xml_root.find('.//cell_definitions')  # find unique entry point\n"
+# fill_gui_str += indent + "uep = xml_root.find('.//cell_definitions')  # find unique entry point\n"
+# fill_xml_str += indent + "uep = xml_root.find('.//cell_definitions')  # find unique entry point\n"
 
 # param_count = 0
    #param_desc_count = 0
@@ -292,7 +294,7 @@ for child in uep.findall('cell_definition'):
 cells_tab_header += ndent + "self.cell_type_dropdown.options = self.cell_type_dict\n"
 cells_tab_header += ndent + "self.cell_type_dropdown.observe(self.cell_type_cb)\n"
             
-# create parent dict
+# create parent dict for each cell_definition
 for child in uep.findall('cell_definition'):
     name_str = "'" + child.attrib['name'] + "'"
     if 'parent_type' in child.attrib:
@@ -310,16 +312,15 @@ main_vbox_str += indent2 + "self.cell_type_parent_row, \n"
 cells_tab_header += ndent + "self.cell_def_vboxes = []\n" 
 
 motility_count = 0
-#--------- for each <cell_definition>
 cell_def_count = 0
 box_count = 0
-fill_gui_str += indent + "uep = xml_root.find('.//cell_definition')  # find unique entry point\n"
-fill_xml_str += indent + "uep = xml_root.find('.//cell_definition')  # find unique entry point\n"
+# fill_gui_str += indent + "uep = xml_root.find('.//cell_definition')  # find unique entry point\n"
 for cell_def in uep.findall('cell_definition'):
 #   handle_divider_pheno("---------------")
+#   fill_gui_str += indent + "cell_def = uep.find('.//cell_definition')
   cell_def_count_start = cell_def_count
   uep_phenotype = cell_def.find('phenotype')
-  fill_gui_str += indent + "uep = xml_root.find('.//cell_definitions')  # find unique entry point\n"
+#   fill_gui_str += indent + "uep_phenotype = cell_def.find('.//phenotype')
   print('pheno=',uep_phenotype)
   prefix = 'phenotype:'
   elm_str = ""
@@ -327,6 +328,7 @@ for cell_def in uep.findall('cell_definition'):
   for child in uep_phenotype:
     print('pheno child=',child)
     if child.tag == 'cycle':
+        # fill_gui_str += indent + "child_def = uep.find('.//cell_def')
         print('cycle code=',child.attrib['code'])
         print('cycle name=',child.attrib['name'])
         divider_pheno_name = handle_divider_pheno(prefix + "cycle") 
@@ -362,10 +364,10 @@ for cell_def in uep.findall('cell_definition'):
                 color_idx = 1 - color_idx
 
                 # Create appropriate code for 'fill_gui' function
-                fill_gui_str += "#" +indent + w2 + ".value = " + 'float' + "(uep.find('.//" + child.tag + "').text)\n"
+                # fill_gui_str += "#" +indent + w2 + ".value = " + 'float' + "(uep.find('.//" + child.tag + "').text)\n"
 
                 # Create appropriate code for 'fill_xml' function
-                fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
+                # fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
 
 
                 # row1 = [cycle_rate_btn1, self.cycle_rate_float1, units_btn] 
@@ -407,18 +409,20 @@ for cell_def in uep.findall('cell_definition'):
             rate = death_model.find('.//rate')  
             print('rate units=',rate.attrib['units'])
 
-            # w1 = "self.death_model_rate" + str(rate_count)
-            w1 = "self.death_model_rate" + str(death_model_count)
+            # w1 = "self.death_model_rate" + str(death_model_count)
+            w1 = "name_btn"
             btn_str = indent + w1 + " = Button(description='rate', disabled=True, layout=name_button_layout)\n"
             cells_tab_header += btn_str
             color_str = indent + w1 + ".style.button_color = '" + colorname[color_idx] + "'\n"
             cells_tab_header += color_str
 
-            w2 = "self.cycle_rate_float" + str(rate_count)
+            # w2 = "self.cycle_rate_float" + str(rate_count)
+            w2 = "self." + cell_def.tag + "_death_model_" + death_model.attrib["code"] + "_rate"
             btn_str = indent + w2 + " = FloatText(value='" + rate.text + "',  style=style, layout=widget_layout)\n"
             cells_tab_header += btn_str
 
-            w3 = "units_btn" + str(rate_count) 
+            # w3 = "units_btn" + str(rate_count) 
+            w3 = "units_btn"
             btn_str = indent + w3 + " = Button(description='" + units_str + "', disabled=True, layout=units_button_layout)\n"
             cells_tab_header += btn_str
 
@@ -428,9 +432,9 @@ for cell_def in uep.findall('cell_definition'):
             color_idx = 1 - color_idx
 
             # Create appropriate code for 'fill_gui' function
-            fill_gui_str += "#" +indent + w2 + ".value = " + 'float' + "(uep.find('.//" + child.tag + "').text)\n"
+            # fill_gui_str += "#" +indent + w2 + ".value = " + 'float' + "(uep.find('.//" + child.tag + "').text)\n"
             # Create appropriate code for 'fill_xml' function
-            fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
+            # fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
 
 
             # row1 = [cycle_rate_btn1, self.cycle_rate_float1, units_btn] 
@@ -450,9 +454,20 @@ for cell_def in uep.findall('cell_definition'):
             #----------  death model transition rate(s) -------------
             # TODO: fixed_duration
             t_rate = death_model.find('.//transition_rates')  
+            rate_count
             print('t_rate units=',t_rate.attrib['units'])
             for rate in t_rate:
-                print('   ' + rate.attrib['start_index'] + ' -> ' + rate.attrib['end_index'])
+                # argh, these widget names have gotten out of control
+                w0 = "self." + cell_def.tag + "_death_model_" + death_model.attrib["code"] + "_trate" + rate.attrib['start_index'] + rate.attrib['end_index'] + "_toggle"
+
+                if rate.attrib['fixed_duration'].lower() == 'true':
+                    val = "True"
+                else:
+                    val = "False"
+                toggle_str = indent + w0 + " = Checkbox(description='fixed_duration', value=" + val + ",layout=name_button_layout)\n"
+                cells_tab_header += toggle_str
+
+                # print('   ' + rate.attrib['start_index'] + ' -> ' + rate.attrib['end_index'])
 
                 # btn_name = death_model.attrib['name'] + " rate: " + rate.attrib['start_index'] + "->" + rate.attrib['end_index']
                 btn_name = "transition rate: " + rate.attrib['start_index'] + "->" + rate.attrib['end_index']
@@ -476,14 +491,14 @@ for cell_def in uep.findall('cell_definition'):
                 color_idx = 1 - color_idx
 
                 # Create appropriate code for 'fill_gui' function
-                fill_gui_str += "#" +indent + w2 + ".value = " + 'float' + "(uep.find('.//" + child.tag + "').text)\n"
+                # fill_gui_str += "#" +indent + w2 + ".value = " + 'float' + "(uep.find('.//" + child.tag + "').text)\n"
                 # Create appropriate code for 'fill_xml' function
-                fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
+                # fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
 
 
                 # row1 = [cycle_rate_btn1, self.cycle_rate_float1, units_btn] 
                 row_name = "row" + str(rate_count)
-                row_str = indent + row_name + " = [" + w1 + ", " + w2 +  ", " + w3 + "]\n"
+                row_str = indent + row_name + " = [" + w0 + ", " + w1 + ", " + w2 +  ", " + w3 + "]\n"
                 cells_tab_header += row_str
 
         # box_layout = Layout(display='flex', flex_flow='row', align_items='stretch', width='100%')
@@ -517,9 +532,9 @@ for cell_def in uep.findall('cell_definition'):
                 color_idx = 1 - color_idx
 
                 # Create appropriate code for 'fill_gui' function
-                fill_gui_str += "#" +indent + w2 + ".value = " + 'float' + "(uep.find('.//" + child.tag + "').text)\n"
+                # fill_gui_str += "#" +indent + w2 + ".value = " + 'float' + "(uep.find('.//" + child.tag + "').text)\n"
                 # Create appropriate code for 'fill_xml' function
-                fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
+                # fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
 
 
                 # row1 = [cycle_rate_btn1, self.cycle_rate_float1, units_btn] 
@@ -562,9 +577,9 @@ for cell_def in uep.findall('cell_definition'):
             color_idx = 1 - color_idx
 
             # Create appropriate code for 'fill_gui' function
-            fill_gui_str += "#" +indent + w2 + ".value = " + 'float' + "(uep.find('.//" + child.tag + "').text)\n"
+            # fill_gui_str += "#" +indent + w2 + ".value = " + 'float' + "(uep.find('.//" + child.tag + "').text)\n"
             # Create appropriate code for 'fill_xml' function
-            fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
+            # fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
 
 
             # row1 = [cycle_rate_btn1, self.cycle_rate_float1, units_btn] 
@@ -619,9 +634,9 @@ for cell_def in uep.findall('cell_definition'):
                     color_idx = 1 - color_idx
 
                     # Create appropriate code for 'fill_gui' function
-                    fill_gui_str += "#" +indent + w2 + ".value = " + 'float' + "(uep.find('.//" + child.tag + "').text)\n"
+                    # fill_gui_str += "#" +indent + w2 + ".value = " + 'float' + "(uep.find('.//" + child.tag + "').text)\n"
                     # Create appropriate code for 'fill_xml' function
-                    fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
+                    # fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
 
 
                     # row1 = [cycle_rate_btn1, self.cycle_rate_float1, units_btn] 
@@ -657,9 +672,9 @@ for cell_def in uep.findall('cell_definition'):
                 color_idx = 1 - color_idx
 
                 # Create appropriate code for 'fill_gui' function
-                fill_gui_str += "#" +indent + w2 + ".value = " + 'float' + "(uep.find('.//" + child.tag + "').text)\n"
+                # fill_gui_str += "#" +indent + w2 + ".value = " + 'float' + "(uep.find('.//" + child.tag + "').text)\n"
                 # Create appropriate code for 'fill_xml' function
-                fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
+                # fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
 
 
                 # row1 = [cycle_rate_btn1, self.cycle_rate_float1, units_btn] 

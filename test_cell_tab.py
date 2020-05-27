@@ -10,23 +10,24 @@ import datetime
 from pathlib import Path
 # from user_params import UserTab
 # from microenv_params import MicroenvTab
-from cell_def_mockup import CellDefTab
+#from cell_def_mockup import CellDefTab
+from cells_def import CellsDefTab
 
 constWidth = '180px'
-tab_height = '700px'
-tab_height = '500px'
 tab_height = '450px'
+tab_height = '900px'
 tab_layout = widgets.Layout(width='950px',   # border='2px solid black',
                             height=tab_height, overflow_y='scroll',)
 
 # create the tabs, but don't display them yet
 # microenv_tab = MicroenvTab()
 # user_tab = UserTab()
-cells_tab = CellDefTab()
+cells_tab = CellsDefTab()
 
 # read in/parse the .xml file used to generate the GUI widgets.
 #main_xml_filename = 'PhysiCell_settings.xml'
 main_xml_filename = 'cells.xml'
+main_xml_filename = 'config-immune-response.xml'
 full_xml_filename = os.path.abspath(main_xml_filename)
 print('full_xml_filename=',full_xml_filename)
 
@@ -51,25 +52,35 @@ def fill_gui_params(config_file):
     # microenv_tab.fill_gui(xml_root)
     cells_tab.fill_gui(xml_root)
 
-# Create a 'Write' button that will update the .xml file with the parameters in the GUI
-def write_button_cb(s):
+#-----------------
+# Create a button that will update the .xml file with the parameters in the GUI
+def gui2xml_button_cb(s):
     new_config_file = full_xml_filename
     write_config_file(new_config_file)
 
-write_button = widgets.Button(
-    description='Write',
+gui2xml_button = widgets.Button(
+    description='GUI -> XML',
     button_style='success',  # 'success', 'info', 'warning', 'danger' or ''
     tooltip='Write '+main_xml_filename,
 )
-write_button.on_click(write_button_cb)
+gui2xml_button.on_click(gui2xml_button_cb)
+
+#-----------------
+# Create a button that will update the .xml file with the parameters in the GUI
+xml2gui_button = widgets.Button(
+    description='XML -> GUI',
+    button_style='success',  # 'success', 'info', 'warning', 'danger' or ''
+    tooltip='Write '+main_xml_filename,
+)
+xml2gui_button.on_click(fill_gui_params)
 
 # Finally, create a simple Jupyter GUI consisting of just the user parameters tab and the Write button.
 #titles = ['Microenvironment','User Params']
-titles = ['Cells']
+titles = ['Cell Def']
 #tabs = widgets.Tab(children=[microenv_tab.tab, user_tab.tab],
 tabs = widgets.Tab(children=[cells_tab.tab],
                    _titles={i: t for i, t in enumerate(titles)},
                    layout=tab_layout)
 
-gui = widgets.VBox(children=[tabs, write_button])
+gui = widgets.VBox(children=[tabs, gui2xml_button, xml2gui_button])
 fill_gui_params(full_xml_filename)
