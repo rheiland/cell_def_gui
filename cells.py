@@ -273,13 +273,33 @@ def fill_gui_and_xml(widget_name, xml_elm):
 
 def fill_gui_and_xml_bool_attrib(widget_name, xml_elm, attrib_name):
     global fill_gui_str, fill_xml_str
-    # self.fix_persistence.value = ('true' == (uep.find('.//fix_persistence').text.lower()) )
     # fill_gui_str += indent + widget_name + ".value = ('true' == (uep.find('" + xml_elm + "').text.lower()))\n"
     fill_gui_str += indent + widget_name + ".value = ('true' == (uep.find('" + xml_elm + "').attrib['" + attrib_name + "'].lower()))\n"
 
-    # uep.find('.//fix_persistence').text = str(self.fix_persistence.value)
     # fill_xml_str += indent + "uep.find('" + xml_elm + "').text = str(" + widget_name + ".value)\n"
     fill_xml_str += indent + "uep.find('" + xml_elm + "').attrib['" + attrib_name + "'] = str(" + widget_name + ".value)\n"
+
+def fill_gui_and_xml_bool(widget_name, xml_elm):
+    global fill_gui_str, fill_xml_str
+    # self.fix_persistence.value = ('true' == (uep.find('.//fix_persistence').text.lower()) )
+    # fill_gui_str += indent + widget_name + ".value = ('true' == (uep.find('" + xml_elm + "').text.lower()))\n"
+    fill_gui_str += indent + widget_name + ".value = ('true' == (uep.find('" + xml_elm + "').text.lower()))\n"
+
+    # uep.find('.//fix_persistence').text = str(self.fix_persistence.value)
+    # fill_xml_str += indent + "uep.find('" + xml_elm + "').text = str(" + widget_name + ".value)\n"
+    fill_xml_str += indent + "uep.find('" + xml_elm + "').text = str(" + widget_name + ".value)\n"
+
+def fill_gui_and_xml_string(widget_name, xml_elm):
+    global fill_gui_str, fill_xml_str
+    fill_gui_str += indent + widget_name + ".value = uep.find('" + xml_elm + "').text\n"
+    fill_xml_str += indent + "uep.find('" + xml_elm + "').text = str(" + widget_name + ".value)\n"
+
+def fill_gui_and_xml_string_attrib(widget_name, xml_elm, attrib_name):
+    global fill_gui_str, fill_xml_str
+    fill_gui_str += indent + widget_name + ".value = uep.find('" + xml_elm + "').attrib['" + attrib_name + "']\n"
+    # fill_xml_str += indent + "uep.find('" + xml_elm + "').text = str(" + widget_name + ".value)\n"
+    fill_xml_str += indent + "uep.find('" + xml_elm + "').attrib['" + attrib_name + "'] = str(" + widget_name + ".value)\n"
+
 
 def fill_gui_and_xml_comment(s):
     global fill_gui_str, fill_xml_str
@@ -338,6 +358,7 @@ box_count = 0
 #       in the .xml, and generate code for the 2 functions, "fill_gui" and "fill_xml"
 #       
 for cell_def in uep.findall('cell_definition'):
+  cell_def_name = cell_def.attrib['name']
 #   handle_divider_pheno("---------------")
 #   fill_gui_str += indent + "cell_def = uep.find('.//cell_definition')
 #   cell_def_count_start = cell_def_count 
@@ -405,8 +426,6 @@ for cell_def in uep.findall('cell_definition'):
                 # print("\n---------------- subpath = ", subpath)
 
                 fill_gui_and_xml(w2, subpath)
-
-                # fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
 
                 w3 = "units_btn" 
                 btn_str = indent + w3 + " = Button(description='" + units_str + "', disabled=True, layout=units_button_layout)\n"
@@ -485,9 +504,6 @@ for cell_def in uep.findall('cell_definition'):
 
             fill_gui_and_xml(w2, subpath3)
 
-            # fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
-
-
             # row1 = [cycle_rate_btn1, self.cycle_rate_float1, units_btn] 
             # row_name = "row" + str(rate_count)
             row_name = "row"
@@ -558,9 +574,6 @@ for cell_def in uep.findall('cell_definition'):
                 color_str = indent + w3 + ".style.button_color = '" + colorname[color_idx] + "'\n"
                 cells_tab_header += color_str
                 color_idx = 1 - color_idx
-
-
-                # fill_xml_str += "#" +indent + "uep.find('.//" + child.tag + "').text = str("+ w2 + ".value)\n"
 
                 # row1 = [cycle_rate_btn1, self.cycle_rate_float1, units_btn] 
                 # row_name = "row" + str(rate_count)
@@ -666,7 +679,9 @@ for cell_def in uep.findall('cell_definition'):
 
         for elm in child:
             if elm.tag == 'options':
+                subpath2 = subpath1  + "//" + elm.tag
                 for opt_elm in elm:
+                    subpath3 = subpath2  + "//" + opt_elm.tag
                     # TODO: improve toggle? 
                     # w0 = 'self.' + child.tag + '_' + opt_elm.tag + '_toggle'
                     w0 = "self.bool" + str(bool_var_count)
@@ -678,6 +693,8 @@ for cell_def in uep.findall('cell_definition'):
                     toggle_str = indent + w0 + " = Checkbox(description='enabled', value=" + val + ",layout=name_button_layout)\n"
                     cells_tab_header += toggle_str
                     # elm_str += full_name + ","
+
+                    fill_gui_and_xml_bool_attrib(w0, subpath3, 'enabled')
 
                     # w1 = child.tag + '_' + opt_elm.tag 
                     w1 = "name_btn"
@@ -760,8 +777,10 @@ for cell_def in uep.findall('cell_definition'):
 
         for elm in child:
             if elm.tag == 'options':
+                subpath2 = subpath1  + "//" + elm.tag
                 for opt_elm in elm:
                     if opt_elm.tag == 'enabled':
+                        subpath3 = subpath2  + "//" + opt_elm.tag
                         # full_name = "self." + elm.tag + '_' + opt_elm.tag + str(motility_count)
                         w0 = "self.bool" + str(bool_var_count)
                         bool_var_count += 1
@@ -773,7 +792,11 @@ for cell_def in uep.findall('cell_definition'):
                         cells_tab_header += toggle_str
                         elm_str += w0 + ","
 
+                        # fill_gui_and_xml_bool_attrib(w0, subpath3, 'enabled')
+                        fill_gui_and_xml_bool(w0, subpath3)
+
                     elif opt_elm.tag == 'use_2D':
+                        subpath3 = subpath2  + "//" + opt_elm.tag
                         # full_name = "self." + elm.tag + '_' + opt_elm.tag + str(motility_count)
                         w0 = "self.bool" + str(bool_var_count)
                         bool_var_count += 1
@@ -785,7 +808,11 @@ for cell_def in uep.findall('cell_definition'):
                         cells_tab_header += toggle_str
                         elm_str += w0 + ","
 
+                        # fill_gui_and_xml_bool_attrib(w0, subpath3, 'use_2D')
+                        fill_gui_and_xml_bool(w0, subpath3)
+
                     elif opt_elm.tag == 'chemotaxis':
+                        subpath3 = subpath2  + "//" + opt_elm.tag
                         cells_tab_header += "\n"
                         row_name = "chemotaxis_btn"
                         chemo_header_str = indent + row_name + " = " + "Button(description='chemotaxis', disabled=True, layout={'width':'30%'})\n"
@@ -795,6 +822,7 @@ for cell_def in uep.findall('cell_definition'):
                         for chemotaxis_elm in opt_elm:
                             cells_tab_header += "\n"
                             if chemotaxis_elm.tag == 'enabled':
+                                subpath4 = subpath3  + "//" + chemotaxis_elm.tag
                                 # w0 = "self." + elm.tag + '_' + opt_elm.tag + str(motility_count)
                                 w0 = "self.bool" + str(bool_var_count)
                                 bool_var_count += 1
@@ -806,7 +834,11 @@ for cell_def in uep.findall('cell_definition'):
                                 cells_tab_header += toggle_str
                                 elm_str += w0 + ","
 
+                                fill_gui_and_xml_bool(w0, subpath4)
+
                             elif chemotaxis_elm.tag == 'substrate':
+                                subpath4 = subpath3  + "//" + chemotaxis_elm.tag
+
                                 row_name = "chemotaxis_substrate" + str(motility_count)
                                 chemo_subtrate_str = indent + row_name + " = " + "Button(description='substrate', disabled=True, layout=name_button_layout)\n"
                                 cells_tab_header += chemo_subtrate_str 
@@ -819,6 +851,8 @@ for cell_def in uep.findall('cell_definition'):
                                 substrate_text_str = indent + substrate_name + " = Text(value='" + chemotaxis_elm.text + "', style=style, layout=widget_layout)\n"
                                 cells_tab_header += substrate_text_str
 
+                                fill_gui_and_xml_string(substrate_name, subpath4)
+
                                 row_str = indent + "row = [" + row_name + ", " + substrate_name + "]\n"
                                 cells_tab_header += row_str
                                 # motility_box3 = Box(children=motility_row3, layout=box_layout)
@@ -829,6 +863,8 @@ for cell_def in uep.findall('cell_definition'):
                                 elm_str += box_name + ","
 
                             elif chemotaxis_elm.tag == 'direction':
+                                subpath4 = subpath3  + "//" + chemotaxis_elm.tag
+
                                 row_name = "chemotaxis_direction" + str(motility_count)
                                 chemo_subtrate_str = indent + row_name + " = " + "Button(description='direction', disabled=True, layout=name_button_layout)\n"
                                 cells_tab_header += chemo_subtrate_str 
@@ -840,7 +876,8 @@ for cell_def in uep.findall('cell_definition'):
                                 full_name = "self.chemotaxis_direction" + str(motility_count)
                                 dir_text_str = indent + full_name + " = Text(value='" + chemotaxis_elm.text + "', style=style, layout=widget_layout)\n"
                                 cells_tab_header += dir_text_str
-                                # fill_gui_and_xml
+                                
+                                fill_gui_and_xml_string(full_name, subpath4)
 
                                 row_str = indent + "row = [" + row_name + ", " + full_name + "]\n"
                                 cells_tab_header += row_str
@@ -903,6 +940,7 @@ for cell_def in uep.findall('cell_definition'):
             if elm.tag == 'substrate':
                 substrate_count += 1
                 subpath2 = subpath1  + "//" + elm.tag + "[" + str(substrate_count) + "]"
+
                 # row_name = "secretion_substrate" + str(substrate_count)
                 row_name = "secretion_substrate_btn" 
                 chemo_subtrate_str = indent + row_name + " = " + "Button(description='substrate', disabled=True, layout=name_button_layout)\n"
@@ -912,9 +950,11 @@ for cell_def in uep.findall('cell_definition'):
                 color_idx = 1 - color_idx
                 cells_tab_header += color_str
 
-                substrate_name = "self.secretion_substrate" + str(substrate_count)
-                substrate_text_str = indent + substrate_name + " = Text(value='" + elm.attrib['name'] + "', disabled=True, style=style, layout=widget_layout)\n"
+                substrate_name = "self." + cell_def_name + "_secretion_substrate" + str(substrate_count)
+                substrate_text_str = indent + substrate_name + " = Text(value='" + elm.attrib['name'] + "', disabled=False, style=style, layout=widget_layout)\n"
                 cells_tab_header += substrate_text_str
+
+                fill_gui_and_xml_string_attrib(substrate_name, subpath2, 'name')
 
                 row_str = indent + "row = [" + row_name + ", " + substrate_name + "]\n"
                 cells_tab_header += row_str
