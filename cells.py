@@ -216,7 +216,7 @@ box_header_str = "\n"
 #        box1 = Box(children=row1, layout=box_layout)\n"
 
 float_var_count = 0    # FloatText
-bool_var_count = 0   
+bool_var_count = 0     # Checkbox
 text_var_count = 0   
 
 divider_count = 0
@@ -265,10 +265,21 @@ def handle_divider_pheno(div_str):
 #    main_vbox_str += indent2 + row_name + ",\n"
     return row_name
 
+# default is to assume "float"
 def fill_gui_and_xml(widget_name, xml_elm):
     global fill_gui_str, fill_xml_str
     fill_gui_str += indent + widget_name + ".value = float(uep.find('" + xml_elm + "').text)\n"
     fill_xml_str += indent + "uep.find('" + xml_elm + "').text = str(" + widget_name + ".value)\n"
+
+def fill_gui_and_xml_bool_attrib(widget_name, xml_elm, attrib_name):
+    global fill_gui_str, fill_xml_str
+    # self.fix_persistence.value = ('true' == (uep.find('.//fix_persistence').text.lower()) )
+    # fill_gui_str += indent + widget_name + ".value = ('true' == (uep.find('" + xml_elm + "').text.lower()))\n"
+    fill_gui_str += indent + widget_name + ".value = ('true' == (uep.find('" + xml_elm + "').attrib['" + attrib_name + "'].lower()))\n"
+
+    # uep.find('.//fix_persistence').text = str(self.fix_persistence.value)
+    # fill_xml_str += indent + "uep.find('" + xml_elm + "').text = str(" + widget_name + ".value)\n"
+    fill_xml_str += indent + "uep.find('" + xml_elm + "').attrib['" + attrib_name + "'] = str(" + widget_name + ".value)\n"
 
 def fill_gui_and_xml_comment(s):
     global fill_gui_str, fill_xml_str
@@ -501,14 +512,23 @@ for cell_def in uep.findall('cell_definition'):
             # print('t_rate units=',t_rate.attrib['units'])
             for rate in t_rate:
                 # argh, these widget names have gotten out of control
-                w0 = "self." + cell_def.tag + "_death_model_" + death_model.attrib["code"] + "_trate" + rate.attrib['start_index'] + rate.attrib['end_index'] + "_toggle"
+                # w0 = "self." + cell_def.tag + "_death_model_" + death_model.attrib["code"] + "_trate" + rate.attrib['start_index'] + rate.attrib['end_index'] + "_toggle"
+                w0 = "self.bool" + str(bool_var_count)
+                bool_var_count += 1
+
+                subpath4 = subpath3 +  "//rate[" + str(rate_count) + "]"
+                rate_count += 1
+                print("\n---------------- subpath4 = ", subpath4)
 
                 if rate.attrib['fixed_duration'].lower() == 'true':
                     val = "True"
                 else:
                     val = "False"
-                toggle_str = indent + w0 + " = Checkbox(description='fixed_duration', value=" + val + ",layout=name_button_layout)\n"
+                attrib_name = 'fixed_duration'
+                toggle_str = indent + w0 + " = Checkbox(description='" + attrib_name + "', value=" + val + ",layout=name_button_layout)\n"
                 cells_tab_header += toggle_str
+                # fill_gui_and_xml
+                fill_gui_and_xml_bool_attrib(w0, subpath4, attrib_name)
 
                 # print('   ' + rate.attrib['start_index'] + ' -> ' + rate.attrib['end_index'])
 
@@ -528,9 +548,6 @@ for cell_def in uep.findall('cell_definition'):
                 # self.float0.value = float(uep.find('.//phenotype[1]//cycle//transition_rates//rate[1]').text)
                 # float_gui_str = float_path_str +  "//rate[" + str(rate_count) + "]').text)\n"
                 # subpath3 = subpath2 +  "//model[" + str(death_model_count) + "]"
-                subpath4 = subpath3 +  "//rate[" + str(rate_count) + "]"
-                rate_count += 1
-                print("\n---------------- subpath4 = ", subpath4)
 
                 fill_gui_and_xml(w2,subpath4)
 
@@ -651,7 +668,9 @@ for cell_def in uep.findall('cell_definition'):
             if elm.tag == 'options':
                 for opt_elm in elm:
                     # TODO: improve toggle? 
-                    w0 = 'self.' + child.tag + '_' + opt_elm.tag + '_toggle'
+                    # w0 = 'self.' + child.tag + '_' + opt_elm.tag + '_toggle'
+                    w0 = "self.bool" + str(bool_var_count)
+                    bool_var_count += 1
                     if opt_elm.attrib['enabled'].lower() == 'true':
                         val = "True"
                     else:
@@ -743,24 +762,28 @@ for cell_def in uep.findall('cell_definition'):
             if elm.tag == 'options':
                 for opt_elm in elm:
                     if opt_elm.tag == 'enabled':
-                        full_name = "self." + elm.tag + '_' + opt_elm.tag + str(motility_count)
+                        # full_name = "self." + elm.tag + '_' + opt_elm.tag + str(motility_count)
+                        w0 = "self.bool" + str(bool_var_count)
+                        bool_var_count += 1
                         if opt_elm.text.lower() == 'true':
                             val = "True"
                         else:
                             val = "False"
-                        toggle_str = indent + full_name + " = Checkbox(description='enabled', value=" + val + ",layout=name_button_layout)\n"
+                        toggle_str = indent + w0 + " = Checkbox(description='enabled', value=" + val + ",layout=name_button_layout)\n"
                         cells_tab_header += toggle_str
-                        elm_str += full_name + ","
+                        elm_str += w0 + ","
 
                     elif opt_elm.tag == 'use_2D':
-                        full_name = "self." + elm.tag + '_' + opt_elm.tag + str(motility_count)
+                        # full_name = "self." + elm.tag + '_' + opt_elm.tag + str(motility_count)
+                        w0 = "self.bool" + str(bool_var_count)
+                        bool_var_count += 1
                         if opt_elm.text.lower() == 'true':
                             val = "True"
                         else:
                             val = "False"
-                        toggle_str = indent + full_name + " = Checkbox(description='use_2D', value=" + val + ",layout=name_button_layout)\n"
+                        toggle_str = indent + w0 + " = Checkbox(description='use_2D', value=" + val + ",layout=name_button_layout)\n"
                         cells_tab_header += toggle_str
-                        elm_str += full_name + ","
+                        elm_str += w0 + ","
 
                     elif opt_elm.tag == 'chemotaxis':
                         cells_tab_header += "\n"
@@ -772,14 +795,16 @@ for cell_def in uep.findall('cell_definition'):
                         for chemotaxis_elm in opt_elm:
                             cells_tab_header += "\n"
                             if chemotaxis_elm.tag == 'enabled':
-                                full_name = "self." + elm.tag + '_' + opt_elm.tag + str(motility_count)
+                                # w0 = "self." + elm.tag + '_' + opt_elm.tag + str(motility_count)
+                                w0 = "self.bool" + str(bool_var_count)
+                                bool_var_count += 1
                                 if opt_elm.text.lower() == 'true':
                                     val = "True"
                                 else:
                                     val = "False"
-                                toggle_str = indent + full_name + " = Checkbox(description='enabled', value=" + val + ",layout=name_button_layout)\n"
+                                toggle_str = indent + w0 + " = Checkbox(description='enabled', value=" + val + ",layout=name_button_layout)\n"
                                 cells_tab_header += toggle_str
-                                elm_str += full_name + ","
+                                elm_str += w0 + ","
 
                             elif chemotaxis_elm.tag == 'substrate':
                                 row_name = "chemotaxis_substrate" + str(motility_count)
@@ -815,6 +840,7 @@ for cell_def in uep.findall('cell_definition'):
                                 full_name = "self.chemotaxis_direction" + str(motility_count)
                                 dir_text_str = indent + full_name + " = Text(value='" + chemotaxis_elm.text + "', style=style, layout=widget_layout)\n"
                                 cells_tab_header += dir_text_str
+                                # fill_gui_and_xml
 
                                 row_str = indent + "row = [" + row_name + ", " + full_name + "]\n"
                                 cells_tab_header += row_str
