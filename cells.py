@@ -330,7 +330,8 @@ for cell_def in uep.findall('cell_definition'):
 
 #   float_path_str0 = "float(uep.find('.//phenotype[" + str(cell_def_count+1) + "]"
 #   print("---------------- float_path_str0 = ", float_path_str0)
-  subpath0 = ".//phenotype[" + str(cell_def_count+1) + "]"
+#   subpath0 = ".//phenotype[" + str(cell_def_count+1) + "]"
+  subpath0 = ".//cell_definition[" + str(cell_def_count+1) + "]" + "//phenotype"
   print("\n\n---------------- subpath0 ",cell_def.attrib['name'], " = ", subpath0)
 
 #   fill_gui_str += indent + "uep_phenotype = cell_def.find('.//phenotype')
@@ -345,7 +346,7 @@ for cell_def in uep.findall('cell_definition'):
 
         # float_str += float(uep.find('.//phenotype[1]//cycle//transition_rates//rate[1]').text)
         # float_path_str = float_path_str0  + "//cycle"
-        subpath1 = subpath0  + "//cycle"
+        subpath1 = subpath0  + "//" + child.tag
         print("\n---------------- subpath1 = ", subpath1)
 
         # fill_gui_str += indent + "child_def = uep.find('.//cell_def')
@@ -414,10 +415,10 @@ for cell_def in uep.findall('cell_definition'):
 
 
     elif child.tag == 'death':
-        fill_gui_str += indent + "# ---------  death  ---------\n"
+        fill_gui_str += "\n" + indent + "# ---------  death  ---------\n"
 
         # float_path_str = float_path_str0  + "//death"
-        subpath1 = subpath0  + "//death"
+        subpath1 = subpath0  + "//" + child.tag
         print("\n---------------- subpath1 = ", subpath1)
         death_model_count = 0
         elm_str += handle_divider_pheno(prefix + "death") + ", "
@@ -604,11 +605,15 @@ for cell_def in uep.findall('cell_definition'):
 
 
     elif child.tag == 'volume':
-        fill_gui_str += indent + "# ---------  volume  ---------\n"
+        fill_gui_str += "\n" + indent + "# ---------  volume  ---------\n"
         elm_str += handle_divider_pheno(prefix + "volume") + ", "
+
+        subpath1 = subpath0  + "//" + child.tag
+        print("\n---------------- subpath1 = ", subpath1)
         # print(elm_str)
         for elm in child:
             # w1 = child.tag + '_' + elm.tag 
+            subpath2 = subpath1 +  "//" + elm.tag 
             w1 = "name_btn"
             btn_str = indent + w1 + " = Button(description='" + elm.tag + "', disabled=True, layout=name_button_layout)\n"
             cells_tab_header += btn_str
@@ -619,6 +624,8 @@ for cell_def in uep.findall('cell_definition'):
             float_var_count += 1
             btn_str = indent + w2 + " = FloatText(value='" + elm.text + "',  style=style, layout=widget_layout)\n"
             cells_tab_header += btn_str
+
+            fill_gui_str += indent + w2 + ".value = float(uep.find('" + subpath2 + "').text)\n"
 
             # w3 = "units_btn" +  elm.attrib['units'] 
             w3 = "units_btn" 
@@ -644,9 +651,11 @@ for cell_def in uep.findall('cell_definition'):
 
 
     elif child.tag == 'mechanics':
-        fill_gui_str += indent + "# ---------  mechanics  ---------\n"
+        fill_gui_str += "\n" + indent + "# ---------  mechanics  ---------\n"
         elm_str += handle_divider_pheno(prefix + "mechanics") + ", "
         # print(elm_str)
+        subpath1 = subpath0  + "//" + child.tag
+
         for elm in child:
             if elm.tag == 'options':
                 for opt_elm in elm:
@@ -694,6 +703,7 @@ for cell_def in uep.findall('cell_definition'):
                     cells_tab_header += box_str 
                     elm_str += box_name + ", "
             else:
+                subpath2 = subpath1 +  "//" + elm.tag 
                 # w1 = child.tag + '_' + elm.tag 
                 w1 = "name_btn"
                 btn_str = indent + w1 + " = Button(description='" + elm.tag + "', disabled=True, layout=name_button_layout)\n"
@@ -705,6 +715,8 @@ for cell_def in uep.findall('cell_definition'):
                 float_var_count += 1
                 btn_str = indent + w2 + " = FloatText(value='" + elm.text + "',  style=style, layout=widget_layout)\n"
                 cells_tab_header += btn_str
+
+                fill_gui_str += indent + w2 + ".value = float(uep.find('" + subpath2 + "').text)\n"
 
                 # w3 = "units_btn" +  elm.attrib['units'] 
                 w3 = "units_btn" 
@@ -733,10 +745,11 @@ for cell_def in uep.findall('cell_definition'):
 
 
     elif child.tag == 'motility':
-        fill_gui_str += indent + "# ---------  motility  ---------\n"
+        fill_gui_str += "\n" + indent + "# ---------  motility  ---------\n"
         motility_count += 1
         elm_str += handle_divider_pheno(prefix + "motility") + ", "
         # print(elm_str)
+        subpath1 = subpath0  + "//" + child.tag
 
         for elm in child:
             if elm.tag == 'options':
@@ -825,6 +838,8 @@ for cell_def in uep.findall('cell_definition'):
                                 elm_str += box_name + ","
                 continue
 
+            subpath2 = subpath1 +  "//" + elm.tag 
+
             cells_tab_header += "\n"
             # print('--- motility elm.tag=',elm.tag)
             name_btn = child.tag + '_' + elm.tag + "name" + str(motility_count)
@@ -834,10 +849,13 @@ for cell_def in uep.findall('cell_definition'):
             color_str = indent + name_btn + ".style.button_color = '" + colorname[color_idx] + "'\n"
             cells_tab_header += color_str
 
-            name_float = "self.float" + str(float_var_count)
+            w2 = "self.float" + str(float_var_count)
             float_var_count += 1
-            float_str = indent + name_float + " = FloatText(value='" + elm.text + "', style=style, layout=widget_layout)\n"
+            float_str = indent + w2 + " = FloatText(value='" + elm.text + "', style=style, layout=widget_layout)\n"
             cells_tab_header += float_str
+
+            fill_gui_str += indent + w2 + ".value = float(uep.find('" + subpath2 + "').text)\n"
+
             if 'units' in elm.attrib.keys():
                 units_str = elm.attrib['units']
                 name_units = child.tag + '_' + elm.tag + "units" + str(motility_count)
@@ -850,7 +868,7 @@ for cell_def in uep.findall('cell_definition'):
             color_idx = 1 - color_idx
 
             # motility_row3 = [name_btn, self.motility_migration_bias1 , units_btn]
-            row_str = indent + "row = [" + name_btn + ", " + name_float + ", " +  name_units + "]\n"
+            row_str = indent + "row = [" + name_btn + ", " + w2 + ", " +  name_units + "]\n"
             cells_tab_header += row_str
             # motility_box3 = Box(children=motility_row3, layout=box_layout)
             box_name = "box" + str(box_count)
@@ -859,13 +877,17 @@ for cell_def in uep.findall('cell_definition'):
             cells_tab_header += box_str
             elm_str += box_name + ","
 
+
     elif child.tag == 'secretion':
-        fill_gui_str += indent + "# ---------  secretion  ---------\n"
+        fill_gui_str += "\n" + indent + "# ---------  secretion  ---------\n"
         elm_str += handle_divider_pheno(prefix + "secretion") + ", "
         # print(elm_str)
+        subpath1 = subpath0  + "//" + child.tag
         substrate_count = 0
         for elm in child:
             if elm.tag == 'substrate':
+                substrate_count += 1
+                subpath2 = subpath1  + "//" + elm.tag + "[" + str(substrate_count) + "]"
                 # row_name = "secretion_substrate" + str(substrate_count)
                 row_name = "secretion_substrate_btn" 
                 chemo_subtrate_str = indent + row_name + " = " + "Button(description='substrate', disabled=True, layout=name_button_layout)\n"
@@ -876,7 +898,7 @@ for cell_def in uep.findall('cell_definition'):
                 cells_tab_header += color_str
 
                 substrate_name = "self.secretion_substrate" + str(substrate_count)
-                substrate_text_str = indent + substrate_name + " = Text(value='" + elm.attrib['name'] + "', style=style, layout=widget_layout)\n"
+                substrate_text_str = indent + substrate_name + " = Text(value='" + elm.attrib['name'] + "', disabled=True, style=style, layout=widget_layout)\n"
                 cells_tab_header += substrate_text_str
 
                 row_str = indent + "row = [" + row_name + ", " + substrate_name + "]\n"
@@ -889,6 +911,7 @@ for cell_def in uep.findall('cell_definition'):
                 substrate_count += 1
 
                 for sub_elm in elm:
+                    subpath3 = subpath2  + "//" + sub_elm.tag
                     name_btn = "name_btn"
                     btn_str = indent + name_btn + " = Button(description='" + sub_elm.tag + "', disabled=True, layout=name_button_layout)\n"
                     cells_tab_header += btn_str
@@ -900,6 +923,9 @@ for cell_def in uep.findall('cell_definition'):
                     float_var_count += 1
                     float_str = indent + name_float + " = FloatText(value='" + sub_elm.text + "', style=style, layout=widget_layout)\n"
                     cells_tab_header += float_str
+
+                    fill_gui_str += indent + name_float + ".value = float(uep.find('" + subpath3 + "').text)\n"
+
                     if 'units' in sub_elm.attrib.keys():
                         units_str = sub_elm.attrib['units']
                         # name_units = 'secretion_' + sub_elm.tag + "units" + str(motility_count)
@@ -925,9 +951,10 @@ for cell_def in uep.findall('cell_definition'):
 
 
     elif child.tag == 'molecular':
-        fill_gui_str += indent + "# ---------  molecular  ---------\n"
+        fill_gui_str += "\n" + indent + "# ---------  molecular  ---------\n"
         elm_str += handle_divider_pheno(prefix + "molecular") + ", "
         # print(elm_str)
+        subpath1 = subpath0  + "//" + child.tag
 
 
   #------------  process <custom_data>  ----------------------------------------
@@ -964,7 +991,6 @@ for cell_def in uep.findall('cell_definition'):
         cells_tab_header += "\n" + indent + w1 + " = " + "Button(description='" + cd.tag + "', disabled=True, layout=name_button_layout)\n"
         color_str = indent + w1 + ".style.button_color = '" + colorname[color_idx] + "'\n"
         cells_tab_header += color_str
-        color_idx = 1 - color_idx
 
         param_count += 1
         w2 = "self.custom_data" + str(param_count)
@@ -1004,7 +1030,6 @@ for cell_def in uep.findall('cell_definition'):
 
         color_str = indent + w3 + ".style.button_color = '" + colorname[color_idx] + "'\n"
         cells_tab_header += color_str
-        color_idx = 1 - color_idx
 
 
         w4 = "description_btn" 
@@ -1017,6 +1042,7 @@ for cell_def in uep.findall('cell_definition'):
 
         color_str = indent + w4 + ".style.button_color = '" + colorname[color_idx] + "'\n"
         cells_tab_header += color_str
+
         color_idx = 1 - color_idx
 
         row_name = "row"
