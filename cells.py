@@ -426,7 +426,7 @@ for cell_def in uep.findall('cell_definition'):
                 color_str = indent + w1 + ".style.button_color = '" + colorname[color_idx] + "'\n"
                 cells_tab_header += color_str
 
-                w2 = "self.float_auto" + str(float_var_count)
+                w2 = "self.float" + str(float_var_count)
                 float_var_count += 1
                 # btn_str = indent + w2 + " = FloatText(value='" + rate.text + "',  style=style, layout=widget_layout)\n"
                 # cells_tab_header += btn_str
