@@ -176,18 +176,6 @@ cell_type_dropdown_cb = """
 
 """
 
-def get_float_stepsize(val_str):
-    # fval_abs = abs(float(ppchild.text))
-    fval_abs = abs(float(val_str))
-    if (fval_abs > 0.0):
-        if (fval_abs > 1.0):  # crop
-            delta_val = pow(10, int(math.log10(abs(float(ppchild.text)))) - 1)
-        else:   # round
-            delta_val = pow(10, round(math.log10(abs(float(ppchild.text)))) - 1)
-    else:
-        delta_val = 0.01  # if initial value=0.0, we're totally guessing at what a good delta is
-    return delta_val
-
 # Now parse a configuration file (.xml) and map the user parameters into GUI widgets
 #tree = ET.parse('../config/PhysiCell_settings.xml')
 try:
@@ -216,6 +204,7 @@ box_header_str = "\n"
 #        box1 = Box(children=row1, layout=box_layout)\n"
 
 float_var_count = 0    # FloatText
+text_var_count = 0    # Text
 bool_var_count = 0     # Checkbox
 text_var_count = 0   
 
@@ -248,6 +237,37 @@ lightorange = '#ffde6b'
 
 tag_list = []
 
+def get_float_stepsize(val_str):
+    # fval_abs = abs(float(ppchild.text))
+    fval_abs = abs(float(val_str))
+    if (fval_abs > 0.0):
+        if (fval_abs > 1.0):  # crop
+            # delta_val = pow(10, int(math.log10(abs(float(fval_abs)))) - 1)
+            delta_val = pow(10, int(math.log10(fval_abs)) - 1)
+        else:   # round
+            # delta_val = pow(10, round(math.log10(abs(float(fval_abs)))) - 1)
+            delta_val = pow(10, round(math.log10(fval_abs)) - 1)
+    else:
+        delta_val = 0.01  # if initial value=0.0, we're totally guessing at what a good delta is
+    return delta_val
+
+# rf.  def get_float_stepsize(val_str):
+def create_float_text_widget(name, initial_val, delta_val):
+    global cells_tab_header, indent, indent2
+    if delta_val > 0:
+        step_val = delta_val
+    else:
+        step_val = get_float_stepsize(str(initial_val))
+    # cells_tab_header += "------------ create_float_text_widget(), name=  " + name + "\n"
+    widget_str = indent + name + " = FloatText(value='" + initial_val + "', step='" + str(step_val) + "', style=style, layout=widget_layout)\n"
+    # step=0.1,
+    return widget_str
+
+def create_text_widget(name, str_val):
+    # substrate_text_str = indent + substrate_name + " = Text(value='" + elm.attrib['name'] + "', disabled=False, style=style, layout=widget_layout)\n"
+    widget_str = indent + name + " = Text(value='" + str_val + "', disabled=False, style=style, layout=widget_layout)\n"
+    return widget_str
+
 # function to process a "divider" type element
 def handle_divider(child):
     global divider_count, cells_tab_header, indent, indent2, main_vbox_str
@@ -262,6 +282,7 @@ def handle_divider_pheno(div_str):
     divider_count += 1
     # print('-----------> handler_divider_pheno: ',divider_count)
     row_name = "div_row" + str(divider_count)
+    cells_tab_header += indent + "#  ------------------------- \n"
     cells_tab_header += indent + row_name + " = " + "Button(description='" + div_str + "', disabled=True, layout=divider_button_layout)\n"
     cells_tab_header += indent + row_name + ".style.button_color = 'orange'\n"
 #    main_vbox_str += indent2 + row_name + ",\n"
@@ -363,6 +384,8 @@ for cell_def in uep.findall('cell_definition'):
   cell_def_name = cell_def.attrib['name']
   uep_phenotype = cell_def.find('phenotype')  # cell_def children: currently just <phenotype> and <custom_data> 
 
+  cells_tab_header += indent + "#  >>>>>>>>>>>>>>>>> <cell_definition> = " + cell_def.attrib['name'] + "\n"
+
   subpath0 = ".//cell_definition[" + str(cell_def_count+1) + "]" + "//phenotype"
   print("\n\n---------------- subpath0 ",cell_def.attrib['name'], " = ", subpath0)
   fill_gui_and_xml_comment("# ------------------ cell_definition: " + cell_def.attrib['name'])
@@ -403,10 +426,11 @@ for cell_def in uep.findall('cell_definition'):
                 color_str = indent + w1 + ".style.button_color = '" + colorname[color_idx] + "'\n"
                 cells_tab_header += color_str
 
-                w2 = "self.float" + str(float_var_count)
+                w2 = "self.float_auto" + str(float_var_count)
                 float_var_count += 1
-                btn_str = indent + w2 + " = FloatText(value='" + rate.text + "',  style=style, layout=widget_layout)\n"
-                cells_tab_header += btn_str
+                # btn_str = indent + w2 + " = FloatText(value='" + rate.text + "',  style=style, layout=widget_layout)\n"
+                # cells_tab_header += btn_str
+                cells_tab_header += create_float_text_widget(w2, rate.text, -1)
 
                 rate_count += 1
 
@@ -464,8 +488,9 @@ for cell_def in uep.findall('cell_definition'):
 
             w2 = "self.float" + str(float_var_count)
             float_var_count += 1
-            btn_str = indent + w2 + " = FloatText(value='" + rate.text + "',  style=style, layout=widget_layout)\n"
-            cells_tab_header += btn_str
+            # btn_str = indent + w2 + " = FloatText(value='" + rate.text + "',  style=style, layout=widget_layout)\n"
+            # cells_tab_header += btn_str
+            cells_tab_header += create_float_text_widget(w2, rate.text, -1)
 
             # w3 = "units_btn" + str(rate_count) 
             w3 = "units_btn"
@@ -497,10 +522,11 @@ for cell_def in uep.findall('cell_definition'):
             #----------  death model transition rate(s) -------------
             # TODO: fixed_duration
             t_rate = death_model.find('.//transition_rates')  
-            rate_count = 1
-            subpath3 = subpath2 +  "//transition_rates" 
-            # print('t_rate units=',t_rate.attrib['units'])
-            for rate in t_rate:
+            if t_rate:
+              rate_count = 1
+              subpath3 = subpath2 +  "//transition_rates" 
+              # print('t_rate units=',t_rate.attrib['units'])
+              for rate in t_rate:
                 # argh, these widget names have gotten out of control
                 # w0 = "self." + cell_def.tag + "_death_model_" + death_model.attrib["code"] + "_trate" + rate.attrib['start_index'] + rate.attrib['end_index'] + "_toggle"
                 w0 = "self.bool" + str(bool_var_count)
@@ -532,8 +558,9 @@ for cell_def in uep.findall('cell_definition'):
 
                 w2 = "self.float" + str(float_var_count)
                 float_var_count += 1
-                btn_str = indent + w2 + " = FloatText(value='" + rate.text + "',  style=style, layout=widget_layout)\n"
-                cells_tab_header += btn_str
+                # btn_str = indent + w2 + " = FloatText(value='" + rate.text + "',  style=style, layout=widget_layout)\n"
+                # cells_tab_header += btn_str
+                cells_tab_header += create_float_text_widget(w2, rate.text, -1)
 
                 # self.float0.value = float(uep.find('.//phenotype[1]//cycle//transition_rates//rate[1]').text)
                 # float_gui_str = float_path_str +  "//rate[" + str(rate_count) + "]').text)\n"
@@ -563,8 +590,9 @@ for cell_def in uep.findall('cell_definition'):
 
             #----------  death model <parameters> -------------
             d_params = death_model.find('.//parameters')  
-            subpath3 = subpath2 +  "//parameters" 
-            for elm in d_params:
+            if d_params:
+              subpath3 = subpath2 +  "//parameters" 
+              for elm in d_params:
                 # w1 = elm.tag + "_" + death_model.attrib['name'] 
                 subpath4 = subpath3 +  "//" + elm.tag 
                 w1 = "name_btn"
@@ -575,8 +603,9 @@ for cell_def in uep.findall('cell_definition'):
 
                 w2 = "self.float" + str(float_var_count)
                 float_var_count += 1
-                btn_str = indent + w2 + " = FloatText(value='" + elm.text + "',  style=style, layout=widget_layout)\n"
-                cells_tab_header += btn_str
+                # btn_str = indent + w2 + " = FloatText(value='" + elm.text + "',  style=style, layout=widget_layout)\n"
+                # cells_tab_header += btn_str
+                cells_tab_header += create_float_text_widget(w2, elm.text, -1)
 
                 fill_gui_and_xml(w2,subpath4)
 
@@ -617,8 +646,9 @@ for cell_def in uep.findall('cell_definition'):
 
             w2 = "self.float" + str(float_var_count)
             float_var_count += 1
-            btn_str = indent + w2 + " = FloatText(value='" + elm.text + "',  style=style, layout=widget_layout)\n"
-            cells_tab_header += btn_str
+            # btn_str = indent + w2 + " = FloatText(value='" + elm.text + "',  style=style, layout=widget_layout)\n"
+            # cells_tab_header += btn_str
+            cells_tab_header += create_float_text_widget(w2, elm.text, -1)
 
             fill_gui_and_xml(w2, subpath2)
 
@@ -676,8 +706,9 @@ for cell_def in uep.findall('cell_definition'):
 
                     w2 = "self.float" + str(float_var_count)
                     float_var_count += 1
-                    btn_str = indent + w2 + " = FloatText(value='" + opt_elm.text + "',  style=style, layout=widget_layout)\n"
-                    cells_tab_header += btn_str
+                    # btn_str = indent + w2 + " = FloatText(value='" + opt_elm.text + "',  style=style, layout=widget_layout)\n"
+                    # cells_tab_header += btn_str
+                    cells_tab_header += create_float_text_widget(w2, opt_elm.text, -1)
 
                     # fill_gui_str += "#" +indent + w2 + ".value = " + 'float' + "(uep.find('.//" + child.tag + "').text)\n"
 
@@ -711,8 +742,9 @@ for cell_def in uep.findall('cell_definition'):
 
                 w2 = "self.float" + str(float_var_count)
                 float_var_count += 1
-                btn_str = indent + w2 + " = FloatText(value='" + elm.text + "',  style=style, layout=widget_layout)\n"
-                cells_tab_header += btn_str
+                # btn_str = indent + w2 + " = FloatText(value='" + elm.text + "',  style=style, layout=widget_layout)\n"
+                # cells_tab_header += btn_str
+                cells_tab_header += create_float_text_widget(w2, elm.text, -1)
 
                 fill_gui_and_xml(w2, subpath2)
 
@@ -863,8 +895,9 @@ for cell_def in uep.findall('cell_definition'):
 
             w2 = "self.float" + str(float_var_count)
             float_var_count += 1
-            float_str = indent + w2 + " = FloatText(value='" + elm.text + "', style=style, layout=widget_layout)\n"
-            cells_tab_header += float_str
+            # float_str = indent + w2 + " = FloatText(value='" + elm.text + "', style=style, layout=widget_layout)\n"
+            # cells_tab_header += float_str
+            cells_tab_header += create_float_text_widget(w2, elm.text, -1)
 
             fill_gui_and_xml(w2, subpath2)
 
@@ -908,9 +941,12 @@ for cell_def in uep.findall('cell_definition'):
                 color_idx = 1 - color_idx
                 cells_tab_header += color_str
 
-                substrate_name = "self." + cell_def_name + "_secretion_substrate" + str(substrate_count)
-                substrate_text_str = indent + substrate_name + " = Text(value='" + elm.attrib['name'] + "', disabled=False, style=style, layout=widget_layout)\n"
-                cells_tab_header += substrate_text_str
+                # substrate_name = "self." + cell_def_name + "_secretion_substrate" + str(substrate_count)
+                substrate_name = "self.text" + str(text_var_count)
+                text_var_count += 1
+                # substrate_text_str = indent + substrate_name + " = Text(value='" + elm.attrib['name'] + "', disabled=False, style=style, layout=widget_layout)\n"
+                # cells_tab_header += substrate_text_str
+                cells_tab_header += create_text_widget(substrate_name, elm.attrib['name'])
 
                 fill_gui_and_xml_string_attrib(substrate_name, subpath2, 'name')
 
@@ -932,12 +968,13 @@ for cell_def in uep.findall('cell_definition'):
                     color_str = indent + name_btn + ".style.button_color = '" + colorname[color_idx] + "'\n"
                     cells_tab_header += color_str
 
-                    name_float = "self.float" + str(float_var_count)
+                    w2 = "self.float" + str(float_var_count)
                     float_var_count += 1
-                    float_str = indent + name_float + " = FloatText(value='" + sub_elm.text + "', style=style, layout=widget_layout)\n"
-                    cells_tab_header += float_str
+                    # float_str = indent + w2 + " = FloatText(value='" + sub_elm.text + "', style=style, layout=widget_layout)\n"
+                    # cells_tab_header += float_str
+                    cells_tab_header += create_float_text_widget(w2, sub_elm.text, -1)
 
-                    fill_gui_and_xml(name_float, subpath3)
+                    fill_gui_and_xml(w2, subpath3)
 
                     if 'units' in sub_elm.attrib.keys():
                         units_str = sub_elm.attrib['units']
@@ -953,7 +990,7 @@ for cell_def in uep.findall('cell_definition'):
                     color_idx = 1 - color_idx
 
                     # motility_row3 = [name_btn, self.motility_migration_bias1 , units_btn]
-                    row_str = indent + "row = [" + name_btn + ", " + name_float + ", " +  name_units + "]\n"
+                    row_str = indent + "row = [" + name_btn + ", " + w2 + ", " +  name_units + "]\n"
                     cells_tab_header += row_str
                     # motility_box3 = Box(children=motility_row3, layout=box_layout)
                     box_name = "box" + str(box_count)
