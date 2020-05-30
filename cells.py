@@ -230,7 +230,7 @@ uep = root.find('.//cell_definitions')  # find unique entry point (uep)
 # name_count = 0
 # units_count = 0
 
-print_vars = False
+print_vars = True
 print_var_types = False
 
 lightorange = '#ffde6b'
@@ -1041,9 +1041,14 @@ for cell_def in uep.findall('cell_definition'):
             color_str = indent + w1 + ".style.button_color = '" + colorname[color_idx] + "'\n"
             cells_tab_header += color_str
 
-            param_count += 1
-            w2 = "self.custom_data" + str(param_count)
-            cells_tab_header += "\n" + indent + w2 + " = FloatText(" 
+            # param_count += 1
+            # w2 = "self.custom_data" + str(param_count)
+
+            w2 = "self.float" + str(float_var_count)
+            float_var_count += 1
+            cells_tab_header += create_float_text_widget(w2, cd.text, -1)
+
+            # cells_tab_header += "\n" + indent + w2 + " = FloatText(" 
 
             # Try to calculate and provide a "good" delta step (for the tiny "up/down" arrows on a numeric widget)
             # if ('type' not in child.attrib.keys()) or child.attrib['type'] == "double":
@@ -1060,12 +1065,13 @@ for cell_def in uep.findall('cell_definition'):
             #     if print_var_types:
             #         print('double: ',float(child.text),', delta_val=',delta_val)
 
-            cells_tab_header += indent2 + "value=" + cd.text + ",\n"
+            # cells_tab_header += indent2 + "value=" + cd.text + ",\n"  //rwh
 
             # if (not divider_flag):
                 # We're processing a "normal" row - typically a name, numeric field, units, description
                 #  - append the info at the end of this widget
-            cells_tab_header += indent2 + "style=style, layout=widget_layout)\n"
+
+            # cells_tab_header += indent2 + "style=style, layout=widget_layout)\n"  //rwh
 
 
             w3 = "units_btn" 
@@ -1099,7 +1105,8 @@ for cell_def in uep.findall('cell_definition'):
             # cells_tab_header += "# --------- rwh1"
             cells_tab_header += row_str + "\n"
 
-            box_name = "box" + str(param_count)
+            # box_name = "box" + str(param_count)
+            box_name = "box" + str(float_var_count)
             cells_tab_header += indent + box_name + " = Box(children=" + row_name + ", layout=box_layout)\n"
             # else:  # divider
             #     # box_str += indent + box_name + " = Box(children=" + row_name + ", layout=box_layout)\n"
