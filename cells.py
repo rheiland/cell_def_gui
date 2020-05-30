@@ -110,6 +110,7 @@ class CellsDefTab(object):
 
         name_button_layout={'width':'25%'}
         widget_layout = {'width': '15%'}
+        widget_layout_long = {'width': '20%'}
         units_button_layout ={'width':'15%'}
         desc_button_layout={'width':'45%'}
         divider_button_layout={'width':'40%'}
@@ -208,6 +209,8 @@ text_var_count = 0    # Text
 bool_var_count = 0     # Checkbox
 text_var_count = 0   
 
+button_widget_name = "name_btn"
+
 divider_count = 0
 color_count = 0
 #param_desc_count = 0
@@ -237,6 +240,14 @@ lightorange = '#ffde6b'
 
 tag_list = []
 
+def create_disabled_button_name(name):
+    global cells_tab_header, color_idx
+    btn_str = indent + button_widget_name + " = Button(description='" + name + "', disabled=True, layout=name_button_layout)\n"
+    cells_tab_header += btn_str 
+    color_str = indent + button_widget_name + ".style.button_color = '" + colorname[color_idx] + "'\n"
+    color_idx = 1 - color_idx
+    cells_tab_header += color_str
+
 def get_float_stepsize(val_str):
     # fval_abs = abs(float(ppchild.text))
     fval_abs = abs(float(val_str))
@@ -265,7 +276,7 @@ def create_float_text_widget(name, initial_val, delta_val):
 
 def create_text_widget(name, str_val):
     # substrate_text_str = indent + substrate_name + " = Text(value='" + elm.attrib['name'] + "', disabled=False, style=style, layout=widget_layout)\n"
-    widget_str = indent + name + " = Text(value='" + str_val + "', disabled=False, style=style, layout=widget_layout)\n"
+    widget_str = indent + name + " = Text(value='" + str_val + "', disabled=False, style=style, layout=widget_layout_long)\n"
     return widget_str
 
 # function to process a "divider" type element
@@ -550,7 +561,8 @@ for cell_def in uep.findall('cell_definition'):
 
                         # btn_name = death_model.attrib['name'] + " rate: " + rate.attrib['start_index'] + "->" + rate.attrib['end_index']
                         btn_name = "transition rate: " + rate.attrib['start_index'] + "->" + rate.attrib['end_index']
-                        w1 = "cycle_rate_btn" + str(rate_count) 
+                        # w1 = "cycle_rate_btn" + str(rate_count) 
+                        w1 = "name_btn" 
                         btn_str = indent + w1 + " = Button(description='" + btn_name + "', disabled=True, layout=name_button_layout)\n"
                         cells_tab_header += btn_str
                         color_str = indent + w1 + ".style.button_color = '" + colorname[color_idx] + "'\n"
@@ -837,7 +849,8 @@ for cell_def in uep.findall('cell_definition'):
                                 elif chemotaxis_elm.tag == 'substrate':
                                     subpath4 = subpath3  + "//" + chemotaxis_elm.tag
 
-                                    row_name = "chemotaxis_substrate" + str(motility_count)
+                                    # row_name = "chemotaxis_substrate" + str(motility_count)
+                                    row_name = "btn_name"
                                     chemo_subtrate_str = indent + row_name + " = " + "Button(description='substrate', disabled=True, layout=name_button_layout)\n"
                                     cells_tab_header += chemo_subtrate_str 
                                     color_str = indent + row_name + ".style.button_color = '" + colorname[color_idx] + "'\n"
@@ -845,8 +858,10 @@ for cell_def in uep.findall('cell_definition'):
                                     cells_tab_header += color_str
 
                                     substrate_name = "self.chemotaxis_substrate" + str(motility_count)
-                                    substrate_text_str = indent + substrate_name + " = Text(value='" + chemotaxis_elm.text + "', style=style, layout=widget_layout)\n"
-                                    cells_tab_header += substrate_text_str
+                                    # substrate_text_str = indent + substrate_name + " = Text(value='" + chemotaxis_elm.text + "', style=style, layout=widget_layout_long)\n"
+                                    # cells_tab_header += substrate_text_str
+
+                                    cells_tab_header += create_text_widget(substrate_name, chemotaxis_elm.text)
 
                                     fill_gui_and_xml_string(substrate_name, subpath4)
 
@@ -861,20 +876,26 @@ for cell_def in uep.findall('cell_definition'):
                                 elif chemotaxis_elm.tag == 'direction':
                                     subpath4 = subpath3  + "//" + chemotaxis_elm.tag
 
-                                    row_name = "chemotaxis_direction" + str(motility_count)
-                                    chemo_subtrate_str = indent + row_name + " = " + "Button(description='direction', disabled=True, layout=name_button_layout)\n"
-                                    cells_tab_header += chemo_subtrate_str 
-                                    color_str = indent + row_name + ".style.button_color = '" + colorname[color_idx] + "'\n"
-                                    color_idx = 1 - color_idx
-                                    cells_tab_header += color_str
+                                    # row_name = "chemotaxis_direction" + str(motility_count)
+                                    # w0 = "name_btn"
+                                    # w0 = button_widget_name
+                                    # chemo_subtrate_str = indent + row_name + " = " + "Button(description='direction', disabled=True, layout=name_button_layout)\n"
+                                    # cells_tab_header += chemo_subtrate_str 
+                                    # color_str = indent + row_name + ".style.button_color = '" + colorname[color_idx] + "'\n"
+                                    # color_idx = 1 - color_idx
+                                    # cells_tab_header += color_str
+                                    # cells_tab_header += create_disabled_button_name("direction")
+                                    create_disabled_button_name("direction")
 
-                                    full_name = "self.chemotaxis_direction" + str(motility_count)
-                                    dir_text_str = indent + full_name + " = Text(value='" + chemotaxis_elm.text + "', style=style, layout=widget_layout)\n"
-                                    cells_tab_header += dir_text_str
+                                    direction_name = "self.chemotaxis_direction" + str(motility_count)
+                                    # dir_text_str = indent + full_name + " = Text(value='" + chemotaxis_elm.text + "', style=style, layout=widget_layout)\n"
+                                    # cells_tab_header += dir_text_str
+                                    cells_tab_header += create_text_widget(direction_name, chemotaxis_elm.text)
                                     
-                                    fill_gui_and_xml_string(full_name, subpath4)
+                                    fill_gui_and_xml_string(direction_name, subpath4)
 
-                                    row_str = indent + "row = [" + row_name + ", " + full_name + "]\n"
+                                    # row_str = indent + "row = [" + row_name + ", " + direction_name + "]\n"
+                                    row_str = indent + "row = [" + button_widget_name + ", " + direction_name + "]\n"
                                     cells_tab_header += row_str
                                     box_name = "box" + str(box_count)
                                     box_count += 1
@@ -935,7 +956,7 @@ for cell_def in uep.findall('cell_definition'):
                     subpath2 = subpath1  + "//" + elm.tag + "[" + str(substrate_count) + "]"
 
                     row_name = "secretion_substrate_btn" 
-                    chemo_subtrate_str = indent + row_name + " = " + "Button(description='substrate', disabled=True, layout=name_button_layout)\n"
+                    chemo_subtrate_str = indent + row_name + " = Button(description='substrate', disabled=True, layout=name_button_layout)\n"
                     cells_tab_header += chemo_subtrate_str 
                     color_str = indent + row_name + ".style.button_color = '" + colorname[color_idx] + "'\n"
                     color_idx = 1 - color_idx
@@ -1106,7 +1127,8 @@ for cell_def in uep.findall('cell_definition'):
             cells_tab_header += row_str + "\n"
 
             # box_name = "box" + str(param_count)
-            box_name = "box" + str(float_var_count)
+            box_name = "box" + str(box_count)
+            box_count += 1
             cells_tab_header += indent + box_name + " = Box(children=" + row_name + ", layout=box_layout)\n"
             # else:  # divider
             #     # box_str += indent + box_name + " = Box(children=" + row_name + ", layout=box_layout)\n"
