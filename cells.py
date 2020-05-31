@@ -241,6 +241,18 @@ lightorange = '#ffde6b'
 
 tag_list = []
 
+row_name = "row"
+def create_row_of_widgets(widget_name_list):
+    global row_name, cells_tab_header
+  # row_name = "row" 
+    # row_str = indent + row_name + " = [" + button_widget_name + ", " + w2 +  ", " + button_widget_units + "]\n"
+    row_str = indent + row_name + " = [" 
+    for w in widget_name_list:
+        row_str +=  w + ", " 
+
+    row_str +=  "]\n" 
+    cells_tab_header += row_str
+
 def create_disabled_button_name(name):
     global cells_tab_header, color_idx, button_widget_name
     # # creates "button_widget_name"
@@ -288,20 +300,19 @@ def handle_divider(child):
     global divider_count, cells_tab_header, indent, indent2, main_vbox_str
     divider_count += 1
     # print('-----------> handler_divider: ',divider_count)
-    row_name = "div_row" + str(divider_count)
-    cells_tab_header += "\n" + indent + row_name + " = " + "Button(description='" + child.attrib['description'] + "', disabled=True, layout=divider_button_layout)\n"
-    main_vbox_str += indent2 + row_name + ",\n"
+    divrow_name = "div_row" + str(divider_count)
+    cells_tab_header += "\n" + indent + divrow_name + " = " + "Button(description='" + child.attrib['description'] + "', disabled=True, layout=divider_button_layout)\n"
+    main_vbox_str += indent2 + divrow_name + ",\n"
 
 def handle_divider_pheno(div_str):
     global divider_count, cells_tab_header, indent, indent2, main_vbox_str
     divider_count += 1
     # print('-----------> handler_divider_pheno: ',divider_count)
-    row_name = "div_row" + str(divider_count)
+    divrow_name = "div_row" + str(divider_count)
     cells_tab_header += indent + "#  ------------------------- \n"
-    cells_tab_header += indent + row_name + " = " + "Button(description='" + div_str + "', disabled=True, layout=divider_button_layout)\n"
-    cells_tab_header += indent + row_name + ".style.button_color = 'orange'\n"
-#    main_vbox_str += indent2 + row_name + ",\n"
-    return row_name
+    cells_tab_header += indent + divrow_name + " = " + "Button(description='" + div_str + "', disabled=True, layout=divider_button_layout)\n"
+    cells_tab_header += indent + divrow_name + ".style.button_color = 'orange'\n"
+    return divrow_name
 
 # default is to assume "float"
 def fill_gui_and_xml(widget_name, xml_elm):
@@ -449,9 +460,10 @@ for cell_def in uep.findall('cell_definition'):
                     create_disabled_button_units(units_str)  # creates "button_widget_units"
                     color_idx = 1 - color_idx
 
-                    row_name = "row" 
-                    row_str = indent + row_name + " = [" + button_widget_name + ", " + w2 +  ", " + button_widget_units + "]\n"
-                    cells_tab_header += row_str
+                    # row_name = "row" 
+                    # row_str = indent + row_name + " = [" + button_widget_name + ", " + w2 +  ", " + button_widget_units + "]\n"
+                    # cells_tab_header += row_str
+                    create_row_of_widgets([button_widget_name, w2, button_widget_units])
 
                     box_name = "box" + str(box_count) 
                     box_count += 1
@@ -470,11 +482,11 @@ for cell_def in uep.findall('cell_definition'):
                 death_model_count += 1
                 subpath2 = subpath1 +  "//model[" + str(death_model_count) + "]"
 
-                row_name = "death_model" + str(death_model_count)
-                death_header_str = indent + row_name + " = " + "Button(description='" + death_model.attrib['name'] + "', disabled=True, layout={'width':'30%'})\n"
+                death_row_name = "death_model" + str(death_model_count)
+                death_header_str = indent + death_row_name + " = " + "Button(description='" + death_model.attrib['name'] + "', disabled=True, layout={'width':'30%'})\n"
                 cells_tab_header += death_header_str 
-                cells_tab_header += indent + row_name + ".style.button_color = '" + lightorange + "'\n" 
-                elm_str += row_name + ","
+                cells_tab_header += indent + death_row_name + ".style.button_color = '" + lightorange + "'\n" 
+                elm_str += death_row_name + ","
 
                 # print('death code=',death_model.attrib['code'])
                 # print('death name=',death_model.attrib['name'])
@@ -494,13 +506,13 @@ for cell_def in uep.findall('cell_definition'):
 
                 fill_gui_and_xml(w2, subpath3)
 
-                row_name = "row"
-                row_str = indent + row_name + " = [" + button_widget_name + ", " + w2 +  ", " + button_widget_units + "]\n"
-                cells_tab_header += row_str
+                # row_name = "row"
+                # row_str = indent + row_name + " = [" + button_widget_name + ", " + w2 +  ", " + button_widget_units + "]\n"
+                # cells_tab_header += row_str
+                create_row_of_widgets([button_widget_name, w2, button_widget_units])
 
                 box_name = "box" + str(box_count) 
                 box_count += 1
-                # box_str = indent + box_name + " = Box(children=" + row_name + ", layout=box_layout)\n\n"
                 box_str = indent + box_name + " = Box(children=" + row_name + ", layout=box_layout)\n\n"
                 cells_tab_header += box_str 
                 elm_str += box_name + ", "
@@ -542,9 +554,10 @@ for cell_def in uep.findall('cell_definition'):
                         create_disabled_button_units(units_str)  # creates "button_widget_units"
                         color_idx = 1 - color_idx
 
-                        row_name = "row"
-                        row_str = indent + row_name + " = [" + w0 + ", " + button_widget_name + ", " + w2 +  ", " + button_widget_units + "]\n"
-                        cells_tab_header += row_str
+                        # row_name = "row"
+                        # row_str = indent + row_name + " = [" + w0 + ", " + button_widget_name + ", " + w2 +  ", " + button_widget_units + "]\n"
+                        # cells_tab_header += row_str
+                        create_row_of_widgets([w0, button_widget_name, w2, button_widget_units])
 
                         box_name = "box" + str(box_count) 
                         box_count += 1
@@ -569,9 +582,10 @@ for cell_def in uep.findall('cell_definition'):
                         create_disabled_button_units(units_str)  # creates "button_widget_units"
                         color_idx = 1 - color_idx
 
-                        row_name = "row" 
-                        row_str = indent + row_name + " = [" + button_widget_name + ", " + w2 +  ", " + button_widget_units + "]\n"
-                        cells_tab_header += row_str
+                        # row_name = "row" 
+                        # row_str = indent + row_name + " = [" + button_widget_name + ", " + w2 +  ", " + button_widget_units + "]\n"
+                        # cells_tab_header += row_str
+                        create_row_of_widgets([button_widget_name, w2, button_widget_units])
 
                         box_name = "box" + str(box_count) 
                         box_count += 1
@@ -599,9 +613,10 @@ for cell_def in uep.findall('cell_definition'):
                 create_disabled_button_units(units_str)  # creates "button_widget_units"
                 color_idx = 1 - color_idx
 
-                row_name = "row" 
-                row_str = indent + row_name + " = [" + button_widget_name + ", " + w2 +  ", " + button_widget_units + "]\n"
-                cells_tab_header += row_str
+                # row_name = "row" 
+                # row_str = indent + row_name + " = [" + button_widget_name + ", " + w2 +  ", " + button_widget_units + "]\n"
+                # cells_tab_header += row_str
+                create_row_of_widgets([button_widget_name, w2, button_widget_units])
 
                 box_name = "box" + str(box_count) 
                 box_count += 1
@@ -640,9 +655,10 @@ for cell_def in uep.findall('cell_definition'):
                         create_disabled_button_units(units_str)  # creates "button_widget_units"
                         color_idx = 1 - color_idx
 
-                        row_name = "row" 
-                        row_str = indent + row_name + " = [" + w0 + ", " + button_widget_name + ", " + w2 +  ", " + button_widget_units + "]\n"
-                        cells_tab_header += row_str
+                        # row_name = "row" 
+                        # row_str = indent + row_name + " = [" + w0 + ", " + button_widget_name + ", " + w2 +  ", " + button_widget_units + "]\n"
+                        # cells_tab_header += row_str
+                        create_row_of_widgets([w0, button_widget_name, w2, button_widget_units])
 
                         box_name = "box" + str(box_count) 
                         box_count += 1
@@ -662,9 +678,10 @@ for cell_def in uep.findall('cell_definition'):
                     create_disabled_button_units(units_str)  # creates "button_widget_units"
                     color_idx = 1 - color_idx
 
-                    row_name = "row" 
-                    row_str = indent + row_name + " = [" + button_widget_name + ", " + w2 +  ", " + button_widget_units + "]\n"
-                    cells_tab_header += row_str
+                    # row_name = "row" 
+                    # row_str = indent + row_name + " = [" + button_widget_name + ", " + w2 +  ", " + button_widget_units + "]\n"
+                    # cells_tab_header += row_str
+                    create_row_of_widgets([button_widget_name, w2, button_widget_units])
 
                 if elm.tag != 'options':
                     box_name = "box" + str(box_count) 
@@ -716,11 +733,11 @@ for cell_def in uep.findall('cell_definition'):
                         elif opt_elm.tag == 'chemotaxis':
                             subpath3 = subpath2  + "//" + opt_elm.tag
                             cells_tab_header += "\n"
-                            row_name = "chemotaxis_btn"
-                            chemo_header_str = indent + row_name + " = " + "Button(description='chemotaxis', disabled=True, layout={'width':'30%'})\n"
+                            chemo_row_name = "chemotaxis_btn"
+                            chemo_header_str = indent + chemo_row_name + " = " + "Button(description='chemotaxis', disabled=True, layout={'width':'30%'})\n"
                             cells_tab_header += chemo_header_str 
-                            cells_tab_header += indent + row_name + ".style.button_color = '" + lightorange + "'\n" 
-                            elm_str += row_name + ","
+                            cells_tab_header += indent + chemo_row_name + ".style.button_color = '" + lightorange + "'\n" 
+                            elm_str += chemo_row_name + ","
 
                             for chemotaxis_elm in opt_elm:
                                 cells_tab_header += "\n"
@@ -740,13 +757,6 @@ for cell_def in uep.findall('cell_definition'):
 
                                 elif chemotaxis_elm.tag == 'substrate':
                                     subpath4 = subpath3  + "//" + chemotaxis_elm.tag
-
-                                    # row_name = "btn_name"
-                                    # chemo_subtrate_str = indent + row_name + " = " + "Button(description='substrate', disabled=True, layout=name_button_layout)\n"
-                                    # cells_tab_header += chemo_subtrate_str 
-                                    # color_str = indent + row_name + ".style.button_color = '" + colorname[color_idx] + "'\n"
-                                    # color_idx = 1 - color_idx
-                                    # cells_tab_header += color_str
 
                                     create_disabled_button_name(chemotaxis_elm.tag)  # creates "button_widget_name"
                                     color_idx = 1 - color_idx
@@ -798,7 +808,9 @@ for cell_def in uep.findall('cell_definition'):
 
                 fill_gui_and_xml(w2, subpath2)
 
+                units_str = ""
                 if 'units' in elm.attrib.keys():
+                    units_str = elm.attrib['units']
                     # units_str = elm.attrib['units']
                     # name_units = child.tag + '_' + elm.tag + "units" + str(motility_count)
                     # btn_str = indent + name_units + " = Button(description='" + units_str + "', disabled=True, layout=units_button_layout)\n"
@@ -806,7 +818,7 @@ for cell_def in uep.findall('cell_definition'):
 
                     # color_str = indent + name_units + ".style.button_color = '" + colorname[color_idx] + "'\n"
                     # cells_tab_header += color_str
-                    create_disabled_button_units(elm.attrib['units'])  # creates "button_widget_units"
+                create_disabled_button_units(units_str)  # creates "button_widget_units"
 
                 color_idx = 1 - color_idx
 
