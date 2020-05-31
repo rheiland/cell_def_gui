@@ -73,7 +73,7 @@ print()
 
 if (num_args == 3):
     with open(gui_file) as f:   # e.g., "mygui.py"
-    #  newText = f.read().replace('myconfig.xml', config_file) # rwh todo: don't assume this string; find line
+    #  newText = f.read().replace('myconfig.xml', config_file) # todo: don't assume this string; find line
         file_str = f.read()
         idx = file_str.find('main_xml_filename')  # verify > -1
         file_pre = file_str[:idx] 
@@ -245,7 +245,7 @@ def create_disabled_button_name(name):
     btn_str = indent + button_widget_name + " = Button(description='" + name + "', disabled=True, layout=name_button_layout)\n"
     cells_tab_header += btn_str 
     color_str = indent + button_widget_name + ".style.button_color = '" + colorname[color_idx] + "'\n"
-    color_idx = 1 - color_idx
+    # color_idx = 1 - color_idx
     cells_tab_header += color_str
 
 def get_float_stepsize(val_str):
@@ -430,12 +430,8 @@ for cell_def in uep.findall('cell_definition'):
                 rate_count = 0
                 for rate in rates:
                     btn_name = "transition rate: " + rate.attrib['start_index'] + "->" + rate.attrib['end_index']
-                    w1 = "name_btn"
-                    btn_str = indent + w1 + " = Button(description='" + btn_name + "', disabled=True, layout=name_button_layout)\n"
-                    cells_tab_header += btn_str
+                    create_disabled_button_name(btn_name)  # creates "button_widget_name"
 
-                    color_str = indent + w1 + ".style.button_color = '" + colorname[color_idx] + "'\n"
-                    cells_tab_header += color_str
 
                     w2 = "self.float" + str(float_var_count)
                     float_var_count += 1
@@ -458,7 +454,7 @@ for cell_def in uep.findall('cell_definition'):
                     color_idx = 1 - color_idx
 
                     row_name = "row" 
-                    row_str = indent + row_name + " = [" + w1 + ", " + w2 +  ", " + w3 + "]\n"
+                    row_str = indent + row_name + " = [" + button_widget_name + ", " + w2 +  ", " + w3 + "]\n"
                     cells_tab_header += row_str
 
                     box_name = "box" + str(box_count) 
@@ -876,27 +872,17 @@ for cell_def in uep.findall('cell_definition'):
                                 elif chemotaxis_elm.tag == 'direction':
                                     subpath4 = subpath3  + "//" + chemotaxis_elm.tag
 
-                                    # row_name = "chemotaxis_direction" + str(motility_count)
-                                    # w0 = "name_btn"
-                                    # w0 = button_widget_name
-                                    # chemo_subtrate_str = indent + row_name + " = " + "Button(description='direction', disabled=True, layout=name_button_layout)\n"
-                                    # cells_tab_header += chemo_subtrate_str 
-                                    # color_str = indent + row_name + ".style.button_color = '" + colorname[color_idx] + "'\n"
-                                    # color_idx = 1 - color_idx
-                                    # cells_tab_header += color_str
-                                    # cells_tab_header += create_disabled_button_name("direction")
-                                    create_disabled_button_name("direction")
+                                    create_disabled_button_name("direction")  # creates "button_widget_name"
 
                                     direction_name = "self.chemotaxis_direction" + str(motility_count)
-                                    # dir_text_str = indent + full_name + " = Text(value='" + chemotaxis_elm.text + "', style=style, layout=widget_layout)\n"
-                                    # cells_tab_header += dir_text_str
+
                                     cells_tab_header += create_text_widget(direction_name, chemotaxis_elm.text)
                                     
                                     fill_gui_and_xml_string(direction_name, subpath4)
 
-                                    # row_str = indent + "row = [" + row_name + ", " + direction_name + "]\n"
                                     row_str = indent + "row = [" + button_widget_name + ", " + direction_name + "]\n"
                                     cells_tab_header += row_str
+                                    color_idx = 1 - color_idx
                                     box_name = "box" + str(box_count)
                                     box_count += 1
                                     box_str = indent + box_name + " = Box(children=row, layout=box_layout)\n"
@@ -907,17 +893,10 @@ for cell_def in uep.findall('cell_definition'):
                 subpath2 = subpath1 +  "//" + elm.tag 
 
                 cells_tab_header += "\n"
-                name_btn = child.tag + '_' + elm.tag + "name" + str(motility_count)
-                btn_str = indent + name_btn + " = Button(description='" + elm.tag + "', disabled=True, layout=name_button_layout)\n"
-                cells_tab_header += btn_str
-
-                color_str = indent + name_btn + ".style.button_color = '" + colorname[color_idx] + "'\n"
-                cells_tab_header += color_str
+                create_disabled_button_name(elm.tag)
 
                 w2 = "self.float" + str(float_var_count)
                 float_var_count += 1
-                # float_str = indent + w2 + " = FloatText(value='" + elm.text + "', style=style, layout=widget_layout)\n"
-                # cells_tab_header += float_str
                 cells_tab_header += create_float_text_widget(w2, elm.text, -1)
 
                 fill_gui_and_xml(w2, subpath2)
@@ -934,7 +913,7 @@ for cell_def in uep.findall('cell_definition'):
                 color_idx = 1 - color_idx
 
                 # motility_row3 = [name_btn, self.motility_migration_bias1 , units_btn]
-                row_str = indent + "row = [" + name_btn + ", " + w2 + ", " +  name_units + "]\n"
+                row_str = indent + "row = [" + button_widget_name + ", " + w2 + ", " +  name_units + "]\n"
                 cells_tab_header += row_str
                 # motility_box3 = Box(children=motility_row3, layout=box_layout)
                 box_name = "box" + str(box_count)
@@ -955,24 +934,18 @@ for cell_def in uep.findall('cell_definition'):
                     substrate_count += 1
                     subpath2 = subpath1  + "//" + elm.tag + "[" + str(substrate_count) + "]"
 
-                    row_name = "secretion_substrate_btn" 
-                    chemo_subtrate_str = indent + row_name + " = Button(description='substrate', disabled=True, layout=name_button_layout)\n"
-                    cells_tab_header += chemo_subtrate_str 
-                    color_str = indent + row_name + ".style.button_color = '" + colorname[color_idx] + "'\n"
-                    color_idx = 1 - color_idx
-                    cells_tab_header += color_str
+                    create_disabled_button_name("substrate")
 
-                    # substrate_name = "self." + cell_def_name + "_secretion_substrate" + str(substrate_count)
                     substrate_name = "self.text" + str(text_var_count)
                     text_var_count += 1
-                    # substrate_text_str = indent + substrate_name + " = Text(value='" + elm.attrib['name'] + "', disabled=False, style=style, layout=widget_layout)\n"
-                    # cells_tab_header += substrate_text_str
                     cells_tab_header += create_text_widget(substrate_name, elm.attrib['name'])
 
                     fill_gui_and_xml_string_attrib(substrate_name, subpath2, 'name')
 
-                    row_str = indent + "row = [" + row_name + ", " + substrate_name + "]\n"
+                    row_str = indent + "row = [" + button_widget_name + ", " + substrate_name + "]\n"
                     cells_tab_header += row_str
+                    color_idx = 1 - color_idx
+
                     box_name = "box" + str(box_count)
                     box_count += 1
                     box_str = indent + box_name + " = Box(children=row, layout=box_layout)\n"
@@ -982,25 +955,16 @@ for cell_def in uep.findall('cell_definition'):
 
                     for sub_elm in elm:
                         subpath3 = subpath2  + "//" + sub_elm.tag
-                        name_btn = "name_btn"
-                        btn_str = indent + name_btn + " = Button(description='" + sub_elm.tag + "', disabled=True, layout=name_button_layout)\n"
-                        cells_tab_header += btn_str
-
-                        color_str = indent + name_btn + ".style.button_color = '" + colorname[color_idx] + "'\n"
-                        cells_tab_header += color_str
+                        create_disabled_button_name(sub_elm.tag)
 
                         w2 = "self.float" + str(float_var_count)
                         float_var_count += 1
-                        # float_str = indent + w2 + " = FloatText(value='" + sub_elm.text + "', style=style, layout=widget_layout)\n"
-                        # cells_tab_header += float_str
                         cells_tab_header += create_float_text_widget(w2, sub_elm.text, -1)
 
                         fill_gui_and_xml(w2, subpath3)
 
                         if 'units' in sub_elm.attrib.keys():
                             units_str = sub_elm.attrib['units']
-                            # name_units = 'secretion_' + sub_elm.tag + "units" + str(motility_count)
-                            # name_units = 'secretion_' + sub_elm.tag + "units" 
                             name_units = 'name_units'
                             btn_str = indent + name_units + " = Button(description='" + units_str + "', disabled=True, layout=units_button_layout)\n"
                             cells_tab_header += btn_str
@@ -1010,10 +974,8 @@ for cell_def in uep.findall('cell_definition'):
 
                         color_idx = 1 - color_idx
 
-                        # motility_row3 = [name_btn, self.motility_migration_bias1 , units_btn]
-                        row_str = indent + "row = [" + name_btn + ", " + w2 + ", " +  name_units + "]\n"
+                        row_str = indent + "row = [" + button_widget_name + ", " + w2 + ", " +  name_units + "]\n"
                         cells_tab_header += row_str
-                        # motility_box3 = Box(children=motility_row3, layout=box_layout)
                         box_name = "box" + str(box_count)
                         box_count += 1
                         box_str = indent + box_name + " = Box(children=row, layout=box_layout)\n"
@@ -1035,10 +997,7 @@ for cell_def in uep.findall('cell_definition'):
     # custom_data_widgets = {"double":"FloatText", "int":"IntText", "bool":"Checkbox", "string":"Text", "divider":""}
     # custom_data_type_cast = {"double":"float", "int":"int", "bool":"bool", "string":"", "divider":"Text"}
 
-    #   uep_phenotype = cell_def.find('phenotype')
     uep_custom_data = cell_def.find('custom_data')
-
-    #   vbox_name = "self.cell_def_vbox%d" % cell_def_count
 
     cells_tab_header += "\n#      ================== <custom_data>, if present ==================\n"
     param_count = float_var_count + 1
@@ -1052,47 +1011,17 @@ for cell_def in uep.findall('cell_definition'):
         elm_str += row_name + ","
 
         #---- create widgets:  name, value (float, bool?, string?), units, description
+        # for now, we assume only float values
 
         for cd in uep_custom_data:   
             if print_vars:
                 print(' >> custom_data:  ',cd.tag, cd.attrib)
 
-            w1 = "name_btn"
-            cells_tab_header += "\n" + indent + w1 + " = " + "Button(description='" + cd.tag + "', disabled=True, layout=name_button_layout)\n"
-            color_str = indent + w1 + ".style.button_color = '" + colorname[color_idx] + "'\n"
-            cells_tab_header += color_str
-
-            # param_count += 1
-            # w2 = "self.custom_data" + str(param_count)
+            create_disabled_button_name(cd.tag)
 
             w2 = "self.float" + str(float_var_count)
             float_var_count += 1
             cells_tab_header += create_float_text_widget(w2, cd.text, -1)
-
-            # cells_tab_header += "\n" + indent + w2 + " = FloatText(" 
-
-            # Try to calculate and provide a "good" delta step (for the tiny "up/down" arrows on a numeric widget)
-            # if ('type' not in child.attrib.keys()) or child.attrib['type'] == "double":
-            # if assume_double or child.attrib['type'] == "double":
-            # if child.attrib['type'] == "double":
-            #     fval_abs = abs(float(child.text))
-            #     if (fval_abs > 0.0):
-            #         if (fval_abs > 1.0):  # crop
-            #             delta_val = pow(10, int(math.log10(abs(float(child.text)))) - 1)
-            #         else:   # round
-            #             delta_val = pow(10, round(math.log10(abs(float(child.text)))) - 1)
-            #     else:
-            #         delta_val = 0.01  # if initial value=0.0, we're totally guessing at what a good delta is
-            #     if print_var_types:
-            #         print('double: ',float(child.text),', delta_val=',delta_val)
-
-            # cells_tab_header += indent2 + "value=" + cd.text + ",\n"  //rwh
-
-            # if (not divider_flag):
-                # We're processing a "normal" row - typically a name, numeric field, units, description
-                #  - append the info at the end of this widget
-
-            # cells_tab_header += indent2 + "style=style, layout=widget_layout)\n"  //rwh
 
 
             w3 = "units_btn" 
@@ -1121,62 +1050,16 @@ for cell_def in uep.findall('cell_definition'):
             color_idx = 1 - color_idx
 
             row_name = "row"
-            row_str = indent +  row_name + " = [" + w1 + ", " + w2 + ", " +  w3 + ", " + w4 + "] \n"
+            row_str = indent +  row_name + " = [" + button_widget_name + ", " + w2 + ", " +  w3 + ", " + w4 + "] \n"
 
-            # cells_tab_header += "# --------- rwh1"
             cells_tab_header += row_str + "\n"
 
-            # box_name = "box" + str(param_count)
             box_name = "box" + str(box_count)
             box_count += 1
             cells_tab_header += indent + box_name + " = Box(children=" + row_name + ", layout=box_layout)\n"
-            # else:  # divider
-            #     # box_str += indent + box_name + " = Box(children=" + row_name + ", layout=box_layout)\n"
-            #     cells_tab_header += indent + box_name + " = Box(children=" + row_name + ", layout=box_layout)\n"
 
-            # cells_tab_header += box_str + "\n"
             elm_str += indent2 + box_name + ",\n"
 
-                    # if (not divider_flag):
-                    #     # float, int, bool
-                    #     if (type_cast[child.attrib['type']] == "bool"):
-                    #         fill_gui_str += indent + full_name + ".value = ('true' == (uep.find('.//" + child.tag + "').text.lower()) )\n"
-                    #     else:
-                    #         fill_gui_str += indent + full_name + ".value = " + type_cast[child.attrib['type']] + "(uep.find('.//" + child.tag + "').text)\n"
-
-                    #     fill_xml_str += indent + "uep.find('.//" + child.tag + "').text = str("+ full_name + ".value)\n"
-
-            #---------------------
-            # else: # missing 'type' in child.attrib.keys() --> assume "double"
-            #     continue
-            #     print("-------- no 'type' attrib in custom_data element")
-
-            #     w1 = "param_name" 
-            #     cells_tab_header += "\n" + indent + w1 + " = " + "Button(description='" + child.tag + "', disabled=True, layout=name_button_layout)\n"
-            #     if (param_count % 2):
-            #         cells_tab_header += indent + w1 + ".style.button_color = '" + colorname1 + "'\n"
-            #     else:  # rf.  https://www.w3schools.com/colors/colors_names.asp
-            #         cells_tab_header += indent + w1 + ".style.button_color = '" + colorname2 + "'\n"
-
-            #     name_count += 1
-            #     full_name = "self.custom_data" + str(name_count)
-            #     # cells_tab_header += "\n" + indent + full_name + " = FloatW" + widgets[child.attrib['type']] + "(\n"
-            #     # cells_tab_header = indent + full_name + " = FloatText(value='" + rate.text + "',  style=style, layout=widget_layout)\n"
-            #     cells_tab_header += indent + full_name + " = FloatText(value='42' , style=style, layout=widget_layout)\n"
-
-            #     if (not divider_flag):
-            #         # We're processing a "normal" row - typically a name, numeric field, units, description
-            #         #  - append the info at the end of this widget
-            #         # cells_tab_header += indent2 + "style=style, layout=widget_layout)\n"
-
-            #         # row_str += indent +  row_name + " = [" + param_name_button + ", " + full_name + ", " +      units_btn_name + ", " + desc_row_name + "] \n"
-            #         row_name = "row"
-            #         row_str += indent +  row_name + " = [" + w1 + ", " + full_name + ", " +  w3 + ", " + w4 + "] \n"
-
-            #         cells_tab_header += row_str + "\n"
-
-            #         box_name = "box" + str(param_count)
-            #         box_str += indent + box_name + " = Box(children=" + row_name + ", layout=box_layout)\n"
 
     #======================================================================
     #------------  assemble VBox for this cell type
@@ -1185,8 +1068,6 @@ for cell_def in uep.findall('cell_definition'):
     vbox_name = "self.cell_def_vbox%d" % cell_def_count
     cell_def_vbox_str = "\n" + indent + vbox_name + " = VBox([\n"
     cell_def_vbox_str += indent2 + elm_str
-    #   for idx in range(cell_def_count_start,cell_def_count_end+1)
-        # cell_def_vbox_str += indent + "])\n"
     cell_def_vbox_str += indent + "])\n"
 
     if cell_def_count >= 0:  # NOTE: kind of assuming 0th is "default"
@@ -1195,10 +1076,8 @@ for cell_def in uep.findall('cell_definition'):
     cells_tab_header += cell_def_vbox_str
     cells_tab_header += indent + "# ------------------------------------------\n"
 
-    #   self.cell_def_vboxes.append(self.cell_def_vbox0)
     cells_tab_header += indent + "self.cell_def_vboxes.append(" + vbox_name + ")\n\n"
     cell_def_count += 1
-
 
 
 main_vbox_str += indent + "])"
